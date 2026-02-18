@@ -3,7 +3,6 @@ self.addEventListener('notificationclick', function(event) {
     event.waitUntil(clients.openWindow(event.notification.data.url));
 });
 
-// Listener to handle background sync or nudges if needed later
 self.addEventListener('push', function(event) {
     const data = event.data.json();
     const options = {
