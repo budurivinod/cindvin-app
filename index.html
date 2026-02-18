@@ -11,12 +11,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
     <style>
         :root { --main-bg: #f8fafc; --accent: #0284c7; }
         body { font-family: 'Inter', sans-serif; background: var(--main-bg); padding-bottom: 90px; overflow-x: hidden; }
         
-        /* STRICT TAB ISOLATION */
-        .page { display: none; width: 100%; max-width: 480px; margin: auto; padding: 15px; min-height: 80vh; }
+        .page { display: none; width: 100%; max-width: 480px; margin: auto; padding: 15px; min-height: 85vh; }
         .page.active { display: block !important; }
         
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 12px; border: 1px solid #f1f5f9; }
@@ -24,11 +27,16 @@
         .tab-item { border: none; background: none; color: #94a3b8; font-size: 0.65rem; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .tab-item.active { color: var(--accent); }
         
+        /* Chat Styling */
+        .reply-quote { background: rgba(0,0,0,0.05); border-left: 3px solid var(--accent); padding: 4px 8px; font-size: 10px; border-radius: 4px; margin-bottom: 4px; }
+        #reply-bar { display: none; background: #e2e8f0; padding: 8px 15px; border-radius: 15px 15px 0 0; font-size: 11px; }
+        
+        /* Kiss Meter */
         .kiss-active { background: #fff1f2 !important; border: 2px solid #fb7185 !important; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         .heart-beat { animation: pulse 0.8s infinite; color: #e11d48; }
-        .filter-btn { padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; background: #f1f5f9; color: #64748b; }
-        .filter-btn.active { background: var(--accent); color: white; }
+        
+        #chessBoard { width: 100%; max-width: 350px; margin: 0 auto; border: 3px solid #334155; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -36,71 +44,73 @@
 <div id="p-home" class="page active">
     <div class="card bg-slate-900 text-white flex justify-between items-center shadow-xl">
         <div><h2 class="font-bold text-lg italic">HealthSync</h2><p class="text-[10px] text-sky-400 font-mono uppercase" id="user-display">...</p></div>
-        <div class="text-right text-[10px] font-bold px-3 py-1 rounded-full bg-white/10" id="partner-status">OFFLINE</div>
+        <div class="text-right">
+            <p id="partner-status" class="text-[10px] font-bold">OFFLINE</p>
+            <p id="partner-battery" class="text-[9px] opacity-60">Batt: --%</p>
+        </div>
     </div>
     
-    <div id="kiss-meter" class="card mt-4 py-8 text-center border-2 border-dashed border-slate-200 cursor-pointer select-none touch-none transition-all">
-        <i id="kiss-icon" class="fas fa-heart text-4xl text-slate-100"></i>
-        <p id="kiss-text" class="text-[10px] font-black uppercase mt-2 text-slate-400">Hold for a Shared Kiss</p>
+    <div id="kiss-meter" class="card mt-4 py-6 text-center border-2 border-dashed border-slate-200 cursor-pointer select-none touch-none">
+        <i id="kiss-icon" class="fas fa-heart text-3xl text-slate-100"></i>
+        <p id="kiss-text" class="text-[10px] font-black uppercase mt-2 text-slate-400">Hold for Shared Kiss</p>
     </div>
 
     <div class="grid grid-cols-2 gap-3 mb-4">
-        <button onclick="sendSignal('miss')" class="card p-5 active:scale-95 transition text-center border-none shadow-md">
+        <button onclick="sendSignal('miss')" class="card p-5 active:scale-95 transition text-center shadow-md border-none">
             <i class="fas fa-heart-broken text-sky-500 text-2xl mb-1"></i><br>
-            <span class="text-[10px] font-bold uppercase text-slate-400 italic">I Miss You</span>
+            <span class="text-[10px] font-bold uppercase text-slate-400">I Miss You</span>
             <p id="my-miss-count" class="text-xl font-black text-slate-800">0</p>
         </button>
-        <button onclick="sendSignal('love')" class="card p-5 active:scale-95 transition text-center border-none shadow-md">
+        <button onclick="sendSignal('love')" class="card p-5 active:scale-95 transition text-center shadow-md border-none">
             <i class="fas fa-heart text-rose-500 text-2xl mb-1"></i><br>
-            <span class="text-[10px] font-bold uppercase text-slate-400 italic">I Love You</span>
+            <span class="text-[10px] font-bold uppercase text-slate-400">I Love You</span>
             <p id="my-love-count" class="text-xl font-black text-slate-800">0</p>
         </button>
     </div>
 
     <div class="card text-center">
-        <p class="text-[10px] uppercase font-bold text-slate-400 mb-4 tracking-widest">Sentiment status</p>
-        <div class="flex justify-around text-4xl mb-3">
+        <div class="flex justify-around text-4xl mb-4">
             <button onclick="setMood('😊')">😊</button><button onclick="setMood('😢')">😢</button>
             <button onclick="setMood('❤️')">❤️</button><button onclick="setMood('😡')">😡</button>
-            <button onclick="setMood('😭')">😭</button>
         </div>
-        <p id="partner-mood" class="text-xs text-slate-500 mt-2">Partner is feeling: --</p>
+        <div class="p-3 bg-slate-50 rounded-2xl flex justify-center items-center gap-3">
+            <span id="partner-mood" class="text-3xl">😊</span>
+            <div class="text-left">
+                <p class="text-[10px] font-bold uppercase text-slate-400 leading-none" id="partner-label">Partner</p>
+                <p id="partner-sleep-txt" class="text-xs font-bold text-slate-800">Awake ☀️</p>
+            </div>
+        </div>
     </div>
 
-    <div class="card flex justify-between items-center" id="sleep-card">
-        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Sleep State</p><h3 id="sleep-timer" class="text-lg font-bold">Awake ☀️</h3></div>
-        <button onclick="toggleSleep()" id="sleep-btn" class="bg-indigo-600 text-white px-6 py-2 rounded-full text-xs font-bold">Goodnight</button>
+    <div class="card flex justify-between items-center p-4">
+        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Sleep State</p><h3 id="sleep-timer" class="text-lg font-bold">Awake</h3></div>
+        <button onclick="toggleSleep()" id="sleep-btn" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[10px] font-bold uppercase">Goodnight</button>
     </div>
 </div>
 
 <div id="p-water" class="page">
     <div class="card text-center">
-        <div class="flex justify-between text-[10px] font-bold mb-4"><span>GOAL: 2000ML</span></div>
         <div id="water-circ" class="w-40 h-40 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-sky-100 shadow-inner">
-            <div class="text-center"><span id="current-ml" class="text-3xl font-black text-sky-600">0</span><br><span class="text-[10px] text-slate-400 uppercase font-bold">Total ML</span></div>
+            <div class="text-center"><span id="current-ml" class="text-3xl font-black text-sky-600">0</span><br><span class="text-[10px] text-slate-400 uppercase">Total ML</span></div>
         </div>
-        <input type="number" id="drink-amount" value="250" class="w-full bg-slate-50 border rounded-xl p-3 mb-2 text-center font-bold">
-        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-4 rounded-xl shadow-lg">Log Intake 💧</button>
+        <input type="number" id="drink-amount" value="250" class="w-full bg-slate-50 border rounded-2xl p-4 mb-3 text-center font-bold">
+        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-5 rounded-2xl shadow-lg">LOG WATER 💧</button>
     </div>
 </div>
 
 <div id="p-stats" class="page">
-    <div class="flex justify-between mb-4 bg-white p-2 rounded-2xl shadow-sm border">
-        <button class="filter-btn active" onclick="updateStatsFilter('daily', this)">Daily</button>
-        <button class="filter-btn" onclick="updateStatsFilter('weekly', this)">Weekly</button>
-        <button class="filter-btn" onclick="updateStatsFilter('monthly', this)">Monthly</button>
+    <div class="flex justify-between mb-4 bg-white p-2 rounded-2xl border">
+        <button class="px-4 py-1 text-[10px] font-bold rounded-full bg-sky-500 text-white">Daily View</button>
+        <p class="text-[10px] font-bold text-slate-400 uppercase pt-1">Leaderboard</p>
     </div>
-    <div class="card">
-        <h3 class="font-bold text-[10px] uppercase text-slate-400 mb-6 tracking-widest text-center">Leaderboard</h3>
-        <div id="stats-container" class="space-y-6"></div>
-    </div>
+    <div id="stats-area" class="card space-y-6">
+        </div>
 </div>
 
 <div id="p-calories" class="page">
     <div class="card">
-        <h3 class="font-bold text-xs uppercase mb-4 text-slate-400">Nutrient Intake</h3>
         <div class="flex gap-2 mb-4">
-            <input type="text" id="food-input" placeholder="What did you eat?" class="flex-grow bg-slate-50 border rounded-xl px-4 py-2 text-sm">
+            <input type="text" id="food-input" placeholder="Food item..." class="flex-grow bg-slate-50 border rounded-xl px-4 py-2 text-sm">
             <button onclick="addCalories()" class="bg-emerald-600 text-white px-6 rounded-xl text-sm font-bold">LOG</button>
         </div>
         <div class="grid grid-cols-2 gap-4 h-64 overflow-y-auto">
@@ -110,10 +120,22 @@
     </div>
 </div>
 
+<div id="p-games" class="page">
+    <div class="card text-center">
+        <div id="chessBoard" class="mb-4"></div>
+        <div class="flex justify-between text-[10px] font-bold px-2">
+            <span id="chess-status">White to move</span>
+            <span class="text-amber-600">Wishes: <span id="wish-count">0</span></span>
+        </div>
+        <button onclick="resetChess()" class="w-full mt-4 border border-rose-200 py-3 rounded-xl text-[10px] font-bold text-rose-500 uppercase">Reset Match</button>
+    </div>
+</div>
+
 <div id="p-chat" class="page">
-    <div class="card h-[75vh] flex flex-col bg-slate-50">
+    <div class="card h-[75vh] flex flex-col bg-slate-50 p-1">
         <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-2"></div>
-        <div class="flex gap-2 p-3 bg-white rounded-3xl border shadow-sm mt-2">
+        <div id="reply-bar">Replying to... <button onclick="cancelReply()" class="float-right"><i class="fas fa-times"></i></button></div>
+        <div class="flex gap-2 p-3 bg-white rounded-b-3xl border shadow-sm mt-0">
             <input type="text" id="chat-input" placeholder="Message..." class="flex-grow px-2 py-1 text-sm outline-none">
             <button onclick="sendMessage()" class="bg-sky-500 text-white w-10 h-10 rounded-2xl flex items-center justify-center"><i class="fas fa-paper-plane text-xs"></i></button>
         </div>
@@ -124,12 +146,11 @@
     <button class="tab-item active" onclick="showPage('home')"><i class="fas fa-home"></i>Home</button>
     <button class="tab-item" onclick="showPage('water')"><i class="fas fa-droplet"></i>Water</button>
     <button class="tab-item" onclick="showPage('stats')"><i class="fas fa-trophy"></i>Stats</button>
-    <button class="tab-item" onclick="showPage('calories')"><i class="fas fa-utensils"></i>Cals</button>
-    <button class="tab-item" onclick="showPage('chat')"><i class="fas fa-comment"></i>Chat</button>
+    <button class="tab-item" onclick="showPage('chat')"><i class="fas fa-comment-dots"></i>Chat</button>
+    <button class="tab-item" onclick="showPage('games')"><i class="fas fa-chess-knight"></i>Play</button>
 </div>
 
 <script>
-    // --- FIREBASE CONFIG (YOUR ACTUAL DB) ---
     const firebaseConfig = {
         apiKey: "AIzaSyAcoPWV1RBE5DnRQHUo2EdKe0nEZOeZTr4",
         authDomain: "cindvin-740ac.firebaseapp.com",
@@ -142,89 +163,154 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let myName = localStorage.getItem('hs_pro_v_stable') || prompt("Identify (Vinod/Cindy):");
+    let myName = localStorage.getItem('hs_pro_final_final') || prompt("Identify (Vinod/Cindy):");
     if(myName) myName = myName.charAt(0).toUpperCase() + myName.slice(1);
-    localStorage.setItem('hs_pro_v_stable', myName);
+    localStorage.setItem('hs_pro_final_final', myName);
     const partner = myName === 'Vinod' ? 'Cindy' : 'Vinod';
+    
     document.getElementById('user-display').innerText = "Logged in: " + myName;
+    document.getElementById('partner-label').innerText = partner;
 
-    // --- TAB NAVIGATION FIX ---
+    // --- TAB SYSTEM ---
     function showPage(p) {
         $('.page').hide().removeClass('active');
         $('.tab-item').removeClass('active');
         $('#p-' + p).show().addClass('active');
         $(event.currentTarget).addClass('active');
-        if(p === 'stats') fetchStats();
+        if(p === 'games' && board) board.resize();
+        if(p === 'chat') markAllRead();
+        if(p === 'stats') renderStats();
     }
 
-    // --- PRESENCE (ONLINE/OFFLINE) ---
-    const statusRef = db.ref('status/' + myName);
-    db.ref('.info/connected').on('value', snap => {
-        if (snap.val()) statusRef.onDisconnect().set('offline').then(() => statusRef.set('online'));
+    // --- PRESENCE & BATTERY ---
+    const amOnline = db.ref('.info/connected');
+    amOnline.on('value', s => {
+        if (s.val()) {
+            db.ref('presence/' + myName).onDisconnect().set('offline');
+            db.ref('presence/' + myName).set('online');
+        }
     });
-    db.ref('status/' + partner).on('value', s => {
+    db.ref('presence/' + partner).on('value', s => {
         const pStat = document.getElementById('partner-status');
         pStat.innerText = s.val() === 'online' ? 'ONLINE' : 'OFFLINE';
-        pStat.style.color = s.val() === 'online' ? '#4ade80' : '#ffffff40';
+        pStat.style.color = s.val() === 'online' ? '#4ade80' : '#94a3b8';
     });
-
-    // --- MOOD & SLEEP ---
-    function setMood(e) { db.ref('users/' + myName + '/mood').set(e); }
-    db.ref('users/' + partner + '/mood').on('value', s => { document.getElementById('partner-mood').innerText = partner + " feels: " + (s.val() || "😊"); });
-
-    function toggleSleep() {
-        const isS = document.getElementById('sleep-btn').innerText === "GOODNIGHT";
-        db.ref('users/' + myName + '/sleeping').set(isS);
-        document.getElementById('sleep-timer').innerText = isS ? "Sleeping... 😴" : "Awake ☀️";
-        document.getElementById('sleep-btn').innerText = isS ? "WAKE UP" : "GOODNIGHT";
+    if(navigator.getBattery) {
+        navigator.getBattery().then(b => {
+            const up = () => db.ref('users/' + myName + '/batt').set(Math.round(b.level * 100));
+            b.onlevelchange = up; up();
+        });
     }
-    db.ref('users/' + partner + '/sleeping').on('value', s => {
-        document.getElementById('partner-sleep-txt').innerText = "Status: " + (s.val() ? "Sleeping 😴" : "Awake ☀️");
+    db.ref('users/' + partner + '/batt').on('value', s => { document.getElementById('partner-battery').innerText = "Batt: " + (s.val() || '--') + "%"; });
+
+    // --- CHAT WITH REPLIES & READ RECEIPTS ---
+    let replyObj = null;
+    function setReply(text, sender) {
+        replyObj = { text, sender };
+        $('#reply-bar').text("Replying to: " + text.substring(0,15) + "...").show();
+    }
+    function cancelReply() { replyObj = null; $('#reply-bar').hide(); }
+
+    function sendMessage() {
+        const t = $('#chat-input').val();
+        if(!t) return;
+        db.ref('sync/chat').push({ f: myName, t: t, ts: Date.now(), read: false, reply: replyObj });
+        $('#chat-input').val(""); cancelReply();
+    }
+
+    function markAllRead() {
+        db.ref('sync/chat').once('value', s => {
+            s.forEach(c => { if(c.val().f === partner) db.ref('sync/chat/' + c.key).update({ read: true }); });
+        });
+    }
+
+    db.ref('sync/chat').limitToLast(15).on('value', s => {
+        let h = "";
+        s.forEach(c => {
+            const m = c.val();
+            const isMe = m.f === myName;
+            const rHtml = m.reply ? `<div class="reply-quote"><b>${m.reply.sender}</b>: ${m.reply.text}</div>` : '';
+            const status = m.read ? '<i class="fas fa-check-double text-sky-400"></i> Read' : '<i class="fas fa-check"></i> Sent';
+            
+            h += `
+                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                    <div onclick="setReply('${m.t}', '${m.f}')" class="p-3 rounded-2xl max-w-[85%] text-sm ${isMe ? 'bg-sky-500 text-white rounded-tr-none' : 'bg-white border rounded-tl-none shadow-sm'}">
+                        ${rHtml}${m.t}
+                    </div>
+                    <div class="text-[8px] mt-1 text-slate-400 uppercase font-bold">${isMe ? status : ''}</div>
+                </div>`;
+        });
+        $('#chat-box').html(h).scrollTop(9999);
     });
 
-    // --- SIGNALS & STATS ---
+    // --- CHESS ---
+    var game = new Chess();
+    var board = Chessboard('chessBoard', {
+        draggable: true, position: 'start',
+        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+        onDragStart: (src, piece) => {
+            if (game.game_over()) return false;
+            if ((myName === 'Vinod' && piece.search(/^b/) !== -1) || (myName === 'Cindy' && piece.search(/^w/) !== -1)) return false;
+        },
+        onDrop: (src, tgt) => {
+            let m = game.move({ from: src, to: tgt, promotion: 'q' });
+            if (m === null) return 'snapback';
+            db.ref('sync/chess').set(game.fen());
+        }
+    });
+    db.ref('sync/chess').on('value', s => { if(s.val() && s.val() !== game.fen()){ game.load(s.val()); board.position(s.val()); updateChess(); }});
+    function updateChess() {
+        document.getElementById('chess-status').innerText = game.turn() === 'w' ? "White Turn" : "Black Turn";
+        if(game.in_checkmate()) { db.ref('users/' + myName + '/wishes').transaction(w => (w || 0) + 1); alert("Win! Wish token added."); }
+    }
+    function resetChess() { game.reset(); board.start(); db.ref('sync/chess').set(game.fen()); }
+    db.ref('users/' + myName + '/wishes').on('value', s => { document.getElementById('wish-count').innerText = s.val() || 0; });
+
+    // --- SIGNALS, MOOD, SLEEP ---
     function sendSignal(t) { db.ref('stats/' + myName + '/' + t).transaction(c => (c || 0) + 1); }
     db.ref('stats/' + myName).on('value', s => {
         document.getElementById('my-miss-count').innerText = s.val()?.miss || 0;
         document.getElementById('my-love-count').innerText = s.val()?.love || 0;
     });
-
-    let currentFilter = 'daily';
-    function updateStatsFilter(f, btn) {
-        currentFilter = f;
-        $('.filter-btn').removeClass('active'); $(btn).addClass('active');
-        fetchStats();
+    function setMood(e) { db.ref('users/' + myName + '/mood').set(e); }
+    db.ref('users/' + partner + '/mood').on('value', s => { document.getElementById('partner-mood').innerText = s.val() || '😊'; });
+    function toggleSleep() {
+        const isS = $('#sleep-btn').text() === "GOODNIGHT";
+        db.ref('users/' + myName + '/sleeping').set(isS);
+        $('#sleep-timer').text(isS ? "Sleeping..." : "Awake");
+        $('#sleep-btn').text(isS ? "WAKE UP" : "GOODNIGHT");
     }
+    db.ref('users/' + partner + '/sleeping').on('value', s => { $('#partner-sleep-txt').text(s.val() ? "Sleeping 😴" : "Awake ☀️"); });
 
-    function fetchStats() {
-        db.ref('stats').once('value', s => {
-            const d = s.val() || { Vinod: {}, Cindy: {} };
-            const vM = d.Vinod?.miss || 0, cM = d.Cindy?.miss || 0;
-            const vL = d.Vinod?.love || 0, cL = d.Cindy?.love || 0;
-            const totalM = (vM + cM) || 1, totalL = (vL + cL) || 1;
-            
-            let h = `
-                <div class="space-y-4">
-                    <div><p class="text-[9px] font-bold uppercase mb-1">Miss You Leaderboard</p>
-                    <div class="flex h-4 rounded-full overflow-hidden bg-slate-100">
-                        <div class="bg-sky-400" style="width:${(vM/totalM)*100}%"></div>
-                        <div class="bg-rose-400" style="width:${(cM/totalM)*100}%"></div>
-                    </div></div>
-                    <div><p class="text-[9px] font-bold uppercase mb-1">Love Shared</p>
-                    <div class="flex h-4 rounded-full overflow-hidden bg-slate-100">
-                        <div class="bg-sky-400" style="width:${(vL/totalL)*100}%"></div>
-                        <div class="bg-rose-400" style="width:${(cL/totalL)*100}%"></div>
-                    </div></div>
-                </div>`;
-            document.getElementById('stats-container').innerHTML = h;
-        });
+    // --- WATER & CALS ---
+    function drinkWater() {
+        const amt = parseInt($('#drink-amount').val());
+        db.ref('users/' + myName + '/water').transaction(c => (c || 0) + amt);
     }
+    db.ref('users/' + myName + '/water').on('value', s => {
+        const curr = s.val() || 0; $('#current-ml').text(curr);
+        $('#water-circ').css('background', `conic-gradient(#0ea5e9 ${(curr/2000)*360}deg, #f1f5f9 0deg)`);
+    });
+    function addCalories() {
+        const f = $('#food-input').val(); if(!f) return;
+        db.ref('ledger/' + myName).push({ item: f, cal: 150 }); $('#food-input').val("");
+    }
+    db.ref('ledger').on('value', s => {
+        const d = s.val() || {};
+        const ren = (u, el) => {
+            let h = `<b>${u}:</b><br>`;
+            Object.values(d[u] || {}).forEach(e => h += `${e.item}<br>`);
+            document.getElementById(el).innerHTML = h;
+        };
+        ren('Vinod', 'ledger-vinod'); ren('Cindy', 'ledger-cindy');
+    });
 
     // --- KISS METER ---
     $('#kiss-meter').on('pointerdown', () => db.ref('kiss/' + myName).set(true));
     $('#kiss-meter').on('pointerup mouseleave', () => db.ref('kiss/' + myName).set(false));
     db.ref('kiss').on('value', s => {
-        if(s.val()?.Vinod && s.val()?.Cindy) { 
+        const both = s.val()?.Vinod && s.val()?.Cindy;
+        if(both) { 
             $('#kiss-meter').addClass('kiss-active'); $('#kiss-icon').addClass('heart-beat');
             if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
         } else {
@@ -232,49 +318,25 @@
         }
     });
 
-    // --- CALORIES & WATER ---
-    function addCalories() {
-        const f = document.getElementById('food-input').value;
-        db.ref('ledger/' + myName).push({ item: f, cal: 150 });
-        document.getElementById('food-input').value = "";
-    }
-    db.ref('ledger').on('value', s => {
-        const d = s.val() || {};
-        const render = (u, el) => {
-            let h = `<b>${u}:</b><br>`;
-            Object.values(d[u] || {}).forEach(e => { h += `${e.item}<br>`; });
-            document.getElementById(el).innerHTML = h;
-        };
-        render('Vinod', 'ledger-vinod'); render('Cindy', 'ledger-cindy');
-    });
-
-    function drinkWater() {
-        const amt = parseInt(document.getElementById('drink-amount').value);
-        db.ref('users/' + myName + '/water').transaction(c => (c || 0) + amt);
-    }
-    db.ref('users/' + myName + '/water').on('value', s => {
-        const curr = s.val() || 0;
-        document.getElementById('current-ml').innerText = curr;
-        const p = Math.min((curr / 2000) * 360, 360);
-        document.getElementById('water-circ').style.background = `conic-gradient(#0ea5e9 ${p}deg, #f1f5f9 0deg)`;
-    });
-
-    // --- CHAT ---
-    function sendMessage() {
-        const t = document.getElementById('chat-input').value;
-        if(t) db.ref('sync/chat').push({ f: myName, t: t });
-        document.getElementById('chat-input').value = "";
-    }
-    db.ref('sync/chat').limitToLast(10).on('value', s => {
-        let h = "";
-        s.forEach(c => {
-            const m = c.val();
-            h += `<div class="p-3 rounded-2xl max-w-[85%] text-sm ${m.f === myName ? 'bg-sky-500 text-white ml-auto' : 'bg-white border'}">${m.t}</div>`;
+    function renderStats() {
+        db.ref('stats').once('value', snap => {
+            const d = snap.val() || { Vinod: {}, Cindy: {} };
+            const vm = d.Vinod?.miss || 0, cm = d.Cindy?.miss || 0;
+            const vl = d.Vinod?.love || 0, cl = d.Cindy?.love || 0;
+            const renBar = (v, c, l) => `
+                <div class="mb-4">
+                    <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">${l}</p>
+                    <div class="flex h-3 rounded-full overflow-hidden bg-slate-100">
+                        <div class="bg-sky-400" style="width:${(v/(v+c||1))*100}%"></div>
+                        <div class="bg-rose-400" style="width:${(c/(v+c||1))*100}%"></div>
+                    </div>
+                </div>`;
+            document.getElementById('stats-area').innerHTML = renBar(vm, cm, "Miss You Count") + renBar(vl, cl, "Love Shared");
         });
-        document.getElementById('chat-box').innerHTML = h;
-        document.getElementById('chat-box').scrollTop = 9999;
-    });
+    }
 
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    Notification.requestPermission();
 </script>
 </body>
 </html>
