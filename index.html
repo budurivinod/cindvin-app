@@ -16,16 +16,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
     <style>
-        :root { --main-bg: #f8fafc; --primary: #0f172a; --accent: #0284c7; }
+        :root { --main-bg: #f8fafc; --accent: #0284c7; }
         body { font-family: 'Inter', sans-serif; background: var(--main-bg); padding-bottom: 90px; }
-        .page { display: none; width: 100%; max-width: 480px; margin: auto; padding: 15px; animation: fadeIn 0.2s; }
-        .page.active { display: block; }
-        .card { background: white; border-radius: 16px; padding: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 12px; }
+        .page { display: none; width: 100%; max-width: 480px; margin: auto; padding: 15px; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        .card { background: white; border-radius: 16px; padding: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 12px; border: 1px solid #e2e8f0; }
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #e2e8f0; z-index: 1000; }
         .tab-item { border: none; background: none; color: #94a3b8; font-size: 0.7rem; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .tab-item.active { color: var(--accent); }
-        .tab-item i { font-size: 1.4rem; margin-bottom: 4px; }
-        #live-notif { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #0f172a; color: white; padding: 12px; border-radius: 12px; z-index: 5000; display: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        #myBoard { width: 100%; max-width: 340px; margin: 0 auto; border: 2px solid #334155; border-radius: 8px; }
+        #live-notif { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #0f172a; color: white; padding: 15px; border-radius: 12px; z-index: 5000; display: none; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
@@ -35,105 +35,110 @@
 
 <div id="p-home" class="page active">
     <div class="card bg-slate-900 text-white flex justify-between items-center">
-        <div><h2 class="font-bold">HealthSync Pro</h2><p class="text-[10px] text-sky-400" id="user-display">...</p></div>
-        <div class="text-right text-[10px] uppercase font-bold tracking-tighter" id="partner-status">Offline</div>
+        <div><h2 class="font-bold">HealthSync Hub</h2><p class="text-[10px] text-sky-400 font-mono" id="user-display">...</p></div>
+        <div class="text-right text-[10px] font-bold" id="partner-status">OFFLINE</div>
     </div>
     
-    <div class="grid grid-cols-2 gap-3 mb-4">
-        <button onclick="sendSignal('miss')" class="card p-5 active:scale-95 transition text-center border-none shadow-sm">
-            <i class="fas fa-heart-broken text-sky-500 text-xl mb-2"></i><br>
-            <span class="text-[10px] font-bold uppercase text-slate-500">I Miss You</span>
+    <div class="grid grid-cols-3 gap-2 mb-4">
+        <button onclick="sendSignal('miss')" class="card p-4 active:scale-95 transition text-center shadow-sm">
+            <i class="fas fa-heart-broken text-sky-500 mb-1"></i><br><span class="text-[8px] font-bold uppercase">Miss You</span>
         </button>
-        <button onclick="sendSignal('love')" class="card p-5 active:scale-95 transition text-center border-none shadow-sm">
-            <i class="fas fa-heart text-rose-500 text-xl mb-2"></i><br>
-            <span class="text-[10px] font-bold uppercase text-slate-500">I Love You</span>
+        <button onclick="sendSignal('love')" class="card p-4 active:scale-95 transition text-center shadow-sm">
+            <i class="fas fa-heart text-rose-500 mb-1"></i><br><span class="text-[8px] font-bold uppercase">Love You</span>
+        </button>
+        <button onclick="sendNudge()" class="card p-4 active:scale-95 transition text-center shadow-sm bg-indigo-50">
+            <i class="fas fa-fingerprint text-indigo-500 mb-1"></i><br><span class="text-[8px] font-bold uppercase">Nudge</span>
         </button>
     </div>
 
     <div class="card text-center">
-        <p class="text-[10px] uppercase font-bold text-slate-400 mb-4 tracking-widest">Sentiment status</p>
-        <div class="flex justify-around text-4xl mb-3">
+        <p class="text-[10px] uppercase font-bold text-slate-400 mb-4">Mood</p>
+        <div class="flex justify-around text-3xl mb-4">
             <button onclick="setMood('😊')">😊</button><button onclick="setMood('😢')">😢</button>
             <button onclick="setMood('❤️')">❤️</button><button onclick="setMood('😡')">😡</button>
             <button onclick="setMood('😭')">😭</button>
         </div>
-        <p id="partner-mood" class="text-xs text-slate-500 mt-2">Partner: --</p>
+        <div class="p-3 bg-slate-50 rounded-xl">
+            <p id="partner-mood" class="text-xs font-medium text-slate-600 italic">--</p>
+            <p id="partner-sleep-txt" class="text-[10px] font-bold mt-1 uppercase">Status: Awake</p>
+        </div>
     </div>
 
-    <div class="card flex justify-between items-center" id="sleep-card">
-        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Sleep State</p><h3 id="sleep-timer" class="text-lg font-bold">Awake</h3></div>
+    <div class="card flex justify-between items-center">
+        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Sleep Tracker</p><h3 id="sleep-timer" class="text-lg font-bold text-slate-800">I'm Awake</h3></div>
         <button onclick="toggleSleep()" id="sleep-btn" class="bg-slate-800 text-white px-6 py-2 rounded-full text-xs font-bold">Goodnight</button>
     </div>
 </div>
 
 <div id="p-water" class="page">
     <div class="card text-center">
-        <div class="flex justify-between text-[10px] font-bold mb-4">
-            <span>GOAL: 2000ML</span>
-            <span class="text-amber-500">COINS: <span id="coin-count">0</span></span>
+        <div class="flex justify-between text-[10px] font-bold mb-4"><span>GOAL: 2000ML</span><span class="text-amber-500">COINS: <span id="coin-count">0</span></span></div>
+        <div id="water-circ" class="w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-sky-100 shadow-inner">
+            <div class="text-center"><span id="current-ml" class="text-2xl font-black text-sky-600">0</span><br><span class="text-[8px] text-slate-400 uppercase font-bold">Total ML</span></div>
         </div>
-        <div id="water-circ" class="w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-slate-100 shadow-inner">
-            <div class="text-center"><span id="current-ml" class="text-2xl font-black">0</span><br><span class="text-[8px] text-slate-400 uppercase font-bold">Total ML</span></div>
+        <input type="number" id="drink-amount" value="250" class="w-full bg-slate-50 border rounded-xl p-3 mb-2 text-center font-bold">
+        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all">LOG INTAKE 💧</button>
+    </div>
+</div>
+
+<div id="p-calories" class="page">
+    <div class="card">
+        <h3 class="font-bold text-xs uppercase mb-4 text-slate-400 tracking-widest">Nutrient Intake</h3>
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="food-input" placeholder="Food name..." class="flex-grow bg-slate-50 border rounded-xl px-4 py-2 text-sm">
+            <button onclick="addCalories()" class="bg-emerald-600 text-white px-6 rounded-xl text-sm font-bold">LOG</button>
         </div>
-        <input type="number" id="drink-amount" value="250" class="w-full bg-slate-50 border rounded-xl p-3 mb-2 text-center text-sm">
-        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-4 rounded-xl shadow-lg">Log Consumption</button>
+        <div class="p-4 bg-emerald-50 rounded-xl flex justify-between items-center">
+            <span class="text-xs font-bold text-emerald-800 uppercase">Daily Total</span>
+            <span id="cal-display" class="font-black text-emerald-600">0 kcal</span>
+        </div>
     </div>
 </div>
 
 <div id="p-stats" class="page">
     <div class="card">
-        <h3 class="font-bold text-xs uppercase mb-4 tracking-widest">History & Analytics</h3>
-        <div class="space-y-4">
-            <div class="bg-slate-50 p-4 rounded-xl flex justify-between">
-                <div><p class="text-[10px] text-slate-400 uppercase">Missed Each Other</p><h4 class="text-xl font-bold" id="stat-miss">0</h4></div>
-                <div class="text-right"><p class="text-[10px] text-slate-400 uppercase">Love Shared</p><h4 class="text-xl font-bold" id="stat-love">0</h4></div>
-            </div>
-            <div class="bg-slate-50 p-4 rounded-xl">
-                <p class="text-[10px] text-slate-400 uppercase mb-2 text-center">Hydration History (7 Days)</p>
-                <canvas id="waterChart" height="150"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="p-chat" class="page">
-    <div class="card h-[75vh] flex flex-col bg-slate-50 border-none">
-        <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-2"></div>
-        <div class="flex gap-2 p-2 bg-white rounded-2xl border">
-            <input type="text" id="chat-input" placeholder="Type here..." class="flex-grow px-4 py-2 text-sm outline-none">
-            <button onclick="sendMessage()" class="bg-sky-500 text-white w-10 h-10 rounded-xl"><i class="fas fa-paper-plane"></i></button>
+        <h3 class="font-bold text-xs uppercase mb-6 tracking-widest text-center">Competition Stats</h3>
+        <div class="space-y-6" id="comp-area">
+            <div id="stats-placeholder" class="text-center text-xs text-gray-400 italic">Syncing leaderboard...</div>
         </div>
     </div>
 </div>
 
 <div id="p-games" class="page">
-    <div id="chess-invite" class="card text-center py-10">
-        <i class="fas fa-chess text-4xl mb-4 text-slate-300"></i>
-        <h3 class="font-bold mb-4">Start New Match?</h3>
-        <div class="flex gap-2 justify-center">
-            <button onclick="sendChessRequest()" class="bg-slate-800 text-white px-6 py-2 rounded-lg text-xs">Request Match</button>
+    <div class="card text-center" id="chess-view">
+        <div id="myBoard" class="mb-4"></div>
+        <div class="flex justify-between text-[10px] font-bold p-2 mb-2">
+            <span id="chess-status">White to move</span>
+            <span class="text-amber-600">Wishes: <span id="wish-count">0</span></span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+            <button onclick="requestMatch()" class="bg-slate-800 text-white py-2 rounded-lg text-[10px] font-bold uppercase">Request</button>
+            <button onclick="resetBoard()" class="border border-slate-300 py-2 rounded-lg text-[10px] font-bold uppercase">Reset</button>
         </div>
     </div>
-    
-    <div id="chess-board-area" class="card" style="display:none">
-        <div id="myBoard"></div>
-        <div class="flex justify-between mt-4 text-[10px] font-bold">
-            <span id="chess-status">White's Turn</span>
-            <span class="text-amber-600">Wish Tokens: <span id="wish-count">0</span></span>
+</div>
+
+<div id="p-chat" class="page">
+    <div class="card h-[75vh] flex flex-col bg-slate-50">
+        <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-2"></div>
+        <div class="flex gap-2 p-2 bg-white rounded-2xl border">
+            <input type="text" id="chat-input" placeholder="Message..." class="flex-grow px-4 py-2 text-sm outline-none">
+            <button onclick="sendMessage()" class="bg-sky-500 text-white w-10 h-10 rounded-xl"><i class="fas fa-paper-plane"></i></button>
         </div>
-        <button onclick="resetChess()" class="mt-4 text-[10px] text-rose-500 font-bold uppercase">Reset</button>
     </div>
 </div>
 
 <div class="tab-bar">
-    <button class="tab-item active" onclick="showPage('home')"><i class="fas fa-home"></i>Home</button>
-    <button class="tab-item" onclick="showPage('water')"><i class="fas fa-faucet-drip"></i>Water</button>
-    <button class="tab-item" onclick="showPage('stats')"><i class="fas fa-chart-line"></i>Stats</button>
-    <button class="tab-item" onclick="showPage('chat')"><i class="fas fa-comment-dots"></i>Chat</button>
-    <button class="tab-item" onclick="showPage('games')"><i class="fas fa-gamepad"></i>Games</button>
+    <button class="tab-item active" onclick="showPage('home')"><i class="fas fa-house"></i>Home</button>
+    <button class="tab-item" onclick="showPage('water')"><i class="fas fa-droplet"></i>Water</button>
+    <button class="tab-item" onclick="showPage('stats')"><i class="fas fa-trophy"></i>Stats</button>
+    <button class="tab-item" onclick="showPage('calories')"><i class="fas fa-fire"></i>Cals</button>
+    <button class="tab-item" onclick="showPage('games')"><i class="fas fa-chess-knight"></i>Play</button>
+    <button class="tab-item" onclick="showPage('chat')"><i class="fas fa-comment"></i>Chat</button>
 </div>
 
 <script>
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyAcoPWV1RBE5DnRQHUo2EdKe0nEZOeZTr4",
         authDomain: "cindvin-740ac.firebaseapp.com",
@@ -146,163 +151,168 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let myName = localStorage.getItem('hs_user') || prompt("Identity (Vinod/Cindy):");
+    let myName = localStorage.getItem('hs_pro_vfinal') || prompt("Identity (Vinod/Cindy):");
     if(myName) myName = myName.charAt(0).toUpperCase() + myName.slice(1);
-    localStorage.setItem('hs_user', myName);
+    localStorage.setItem('hs_pro_vfinal', myName);
     const partner = myName === 'Vinod' ? 'Cindy' : 'Vinod';
-    document.getElementById('user-display').innerText = "ID: " + myName;
+    document.getElementById('user-display').innerText = "Logged in: " + myName;
 
     // --- 1. PRESENCE (ONLINE/OFFLINE) ---
-    const amOnline = db.ref('.info/connected');
-    const userStatusRef = db.ref('status/' + myName);
-    amOnline.on('value', (snapshot) => {
-        if (snapshot.val() == false) return;
-        userStatusRef.onDisconnect().set('offline').then(() => {
-            userStatusRef.set('online');
-        });
+    const statusRef = db.ref('status/' + myName);
+    db.ref('.info/connected').on('value', snap => {
+        if (snap.val()) statusRef.onDisconnect().set('offline').then(() => statusRef.set('online'));
     });
     db.ref('status/' + partner).on('value', s => {
-        const pStatus = document.getElementById('partner-status');
-        pStatus.innerText = s.val() === 'online' ? 'Online' : 'Offline';
-        pStatus.style.color = s.val() === 'online' ? '#4ade80' : '#94a3b8';
+        const pStat = document.getElementById('partner-status');
+        pStat.innerText = s.val() === 'online' ? 'ONLINE' : 'OFFLINE';
+        pStat.style.color = s.val() === 'online' ? '#4ade80' : '#94a3b8';
     });
 
-    // --- 2. SIGNALS (MISS/LOVE) ---
-    function sendSignal(type) {
-        const now = Date.now();
-        db.ref('signals/' + myName + '/' + type).push(now);
-        db.ref('live_notif').set({ from: myName, type: type, time: now });
+    // --- 2. NUDGE & NOTIFICATIONS ---
+    function sendNudge() { 
+        db.ref('nudge/' + partner).set(Date.now()); 
+        showLiveNotif("Sent nudge to " + partner);
     }
-    db.ref('signals/' + partner).on('value', s => {
-        if(!s.exists()) return;
-        const data = s.val();
-        document.getElementById('stat-miss').innerText = data.miss ? Object.keys(data.miss).length : 0;
-        document.getElementById('stat-love').innerText = data.love ? Object.keys(data.love).length : 0;
-    });
-
-    // --- 3. MOOD ---
-    function setMood(e) { db.ref('moods/' + myName).set(e); }
-    db.ref('moods/' + partner).on('value', s => {
-        document.getElementById('partner-mood').innerText = partner + ": " + (s.val() || '--');
-    });
-
-    // --- 4. SLEEP SYNC & STATS ---
-    function toggleSleep() {
-        const isNowSleeping = document.getElementById('sleep-btn').innerText === "Goodnight";
-        document.getElementById('sleep-timer').innerText = isNowSleeping ? "Sleeping..." : "Awake";
-        document.getElementById('sleep-btn').innerText = isNowSleeping ? "Wake Up" : "Goodnight";
-        db.ref('sleep/' + myName).set({ state: isNowSleeping, time: Date.now() });
-    }
-    db.ref('sleep/' + partner).on('value', s => {
-        if(!s.exists()) return;
-        const val = s.val();
-        if(val.state) showLiveNotif(partner + " is going to sleep. Goodnight! 🌙");
-    });
-
-    // --- 5. CHAT & NOTIFICATIONS ---
-    function sendMessage() {
-        const t = document.getElementById('chat-input').value;
-        if(t) {
-            db.ref('chat').push({ f: myName, t: t, ts: Date.now() });
-            db.ref('live_notif').set({ from: myName, type: 'chat', text: t, time: Date.now() });
-            document.getElementById('chat-input').value = "";
-        }
-    }
-    db.ref('chat').limitToLast(15).on('value', s => {
-        const box = document.getElementById('chat-box'); box.innerHTML = "";
-        s.forEach(c => {
-            const m = c.val();
-            const d = document.createElement('div');
-            d.className = `p-3 rounded-2xl max-w-[85%] text-sm ${m.f === myName ? 'bg-sky-500 text-white ml-auto rounded-tr-none' : 'bg-white border rounded-tl-none'}`;
-            d.innerHTML = m.t;
-            box.appendChild(d);
-        });
-        box.scrollTop = box.scrollHeight;
-    });
-    db.ref('live_notif').on('value', s => {
-        const n = s.val();
-        if(n && n.from === partner) {
-            let msg = n.type === 'chat' ? partner + ": " + n.text : partner + " sends " + n.type + "! ❤️";
-            showLiveNotif(msg);
+    db.ref('nudge/' + myName).on('value', s => {
+        if(s.val()) {
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            showLiveNotif("💓 " + partner + " is thinking of you!");
+            sendBrowserNotif("CindVin Hub", partner + " just nudged you! 💓");
         }
     });
+
     function showLiveNotif(msg) {
-        const el = document.getElementById('live-notif');
-        el.innerText = msg;
-        $(el).fadeIn().delay(3000).fadeOut();
+        $("#live-notif").text(msg).fadeIn().delay(3000).fadeOut();
     }
 
-    // --- 6. CHESS REQUEST SYSTEM ---
+    function sendBrowserNotif(title, body) {
+        if (Notification.permission === "granted") {
+            new Notification(title, { body: body, icon: "https://cdn-icons-png.flaticon.com/512/3105/3105807.png" });
+        }
+    }
+
+    // --- 3. MOOD & SLEEP ---
+    function setMood(e) { db.ref('users/' + myName + '/mood').set(e); }
+    db.ref('users/' + partner + '/mood').on('value', s => { document.getElementById('partner-mood').innerText = partner + " feels " + (s.val() || "--"); });
+
+    function toggleSleep() {
+        const isS = document.getElementById('sleep-btn').innerText === "Goodnight";
+        db.ref('users/' + myName + '/sleeping').set(isS);
+        document.getElementById('sleep-timer').innerText = isS ? "Sleeping..." : "I'm Awake";
+        document.getElementById('sleep-btn').innerText = isS ? "Wake Up" : "Goodnight";
+    }
+    db.ref('users/' + partner + '/sleeping').on('value', s => {
+        const isS = s.val();
+        document.getElementById('partner-sleep-txt').innerText = partner + " is " + (isS ? "Sleeping 😴" : "Awake ☀️");
+        document.getElementById('partner-sleep-txt').style.color = isS ? "#818cf8" : "#fbbf24";
+    });
+
+    // --- 4. COMPETITION STATS ---
+    function sendSignal(type) { db.ref('stats/' + myName + '/' + type).transaction(c => (c || 0) + 1); }
+    db.ref('stats').on('value', snap => {
+        const d = snap.val() || { Vinod: {}, Cindy: {} };
+        const vMiss = d.Vinod?.miss || 0, cMiss = d.Cindy?.miss || 0;
+        const vLove = d.Vinod?.love || 0, cLove = d.Cindy?.love || 0;
+        
+        const renderBar = (v, c, label) => `
+            <div class="mb-4">
+                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">${label}</p>
+                <div class="flex h-4 rounded-full overflow-hidden bg-slate-100">
+                    <div class="bg-sky-400" style="width:${(v/(v+c||1))*100}%"></div>
+                    <div class="bg-rose-400" style="width:${(c/(v+c||1))*100}%"></div>
+                </div>
+                <div class="flex justify-between text-[9px] font-bold mt-1">
+                    <span class="text-sky-600">Vinod: ${v}</span>
+                    <span class="text-rose-600">Cindy: ${c}</span>
+                </div>
+            </div>`;
+        document.getElementById('comp-area').innerHTML = renderBar(vMiss, cMiss, "Miss You Count") + renderBar(vLove, cLove, "Love You Sent");
+    });
+
+    // --- 5. CALORIES (AUTO) ---
+    const foodLib = { "rice": 130, "egg": 70, "pizza": 285, "apple": 95, "burger": 250 };
+    function addCalories() {
+        const f = document.getElementById('food-input').value.toLowerCase();
+        const c = foodLib[f] || 150;
+        const day = new Date().toLocaleDateString().replace(/\//g, '-');
+        db.ref('users/' + myName + '/cal/' + day).transaction(curr => (curr || 0) + c);
+        document.getElementById('food-input').value = "";
+    }
+    db.ref('users/' + myName + '/cal').on('value', s => {
+        const day = new Date().toLocaleDateString().replace(/\//g, '-');
+        document.getElementById('cal-display').innerText = (s.val()?.[day] || 0) + " kcal";
+    });
+
+    // --- 6. CHESS (SEAT LOCK) ---
     var game = new Chess();
-    var board = null;
-    function sendChessRequest() {
-        db.ref('chess/request').set({ from: myName, ts: Date.now() });
-        alert("Request Sent to " + partner);
-    }
-    db.ref('chess/request').on('value', s => {
-        const r = s.val();
-        if(r && r.from === partner) {
-            if(confirm(partner + " wants to play Chess. Accept?")) {
-                db.ref('chess/active').set(true);
-                db.ref('chess/game').set(game.fen());
-                db.ref('chess/request').remove();
-            }
+    var board = Chessboard('myBoard', {
+        draggable: true, position: 'start',
+        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+        onDragStart: (src, piece) => {
+            if (game.game_over()) return false;
+            if ((myName === 'Vinod' && piece.search(/^b/) !== -1) || (myName === 'Cindy' && piece.search(/^w/) !== -1)) return false;
+        },
+        onDrop: (src, tgt) => {
+            let m = game.move({ from: src, to: tgt, promotion: 'q' });
+            if (m === null) return 'snapback';
+            db.ref('sync/chess_final').set(game.fen());
         }
     });
-    db.ref('chess/active').on('value', s => {
-        if(s.val() === true) {
-            document.getElementById('chess-invite').style.display = 'none';
-            document.getElementById('chess-board-area').style.display = 'block';
-            if(!board) {
-                board = Chessboard('myBoard', {
-                    draggable: true, position: 'start',
-                    onDrop: (src, tgt) => {
-                        let move = game.move({ from: src, to: tgt, promotion: 'q' });
-                        if(!move) return 'snapback';
-                        db.ref('chess/game').set(game.fen());
-                    }
-                });
-            }
-        }
-    });
-    db.ref('chess/game').on('value', s => { if(s.val() && game.fen() !== s.val()) { game.load(s.val()); if(board) board.position(s.val()); updateChessStatus(); } });
-    function updateChessStatus() {
-        document.getElementById('chess-status').innerText = game.turn() === 'w' ? "White's Turn" : "Black's Turn";
-        if(game.in_checkmate()) {
-            alert("Checkmate! Wish earned.");
-            db.ref('wishes/' + myName).transaction(c => (c || 0) + 1);
-        }
+    db.ref('sync/chess_final').on('value', s => { if(s.val()) { game.load(s.val()); board.position(s.val()); updateChess(); } });
+    function updateChess() {
+        document.getElementById('chess-status').innerText = game.turn() === 'w' ? "White Turn" : "Black Turn";
+        if(game.in_checkmate()) { alert("Checkmate!"); db.ref('users/' + myName + '/wishes').transaction(w => (w || 0) + 1); }
     }
-    function resetChess() { game.reset(); db.ref('chess/game').set(game.fen()); }
-    db.ref('wishes/' + myName).on('value', s => { document.getElementById('wish-count').innerText = s.val() || 0; });
+    function resetBoard() { game.reset(); db.ref('sync/chess_final').set(game.fen()); }
+    function requestMatch() { db.ref('sync/chat').push({ f: 'System', t: myName + " is ready for Chess!", ts: Date.now() }); showPage('chat'); }
+    db.ref('users/' + myName + '/wishes').on('value', s => { document.getElementById('wish-count').innerText = s.val() || 0; });
 
-    // --- NAV & TABS ---
-    function showPage(p) {
-        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-        document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
-        document.getElementById('p-' + p).classList.add('active');
-        event.currentTarget.classList.add('active');
-        if(p === 'games' && board) board.resize();
-    }
-
-    // --- WATER ---
+    // --- 7. WATER & NAV ---
     let wData = { daily: {}, coins: 0 };
-    db.ref('users/' + myName + '/water').on('value', s => { if(s.exists()) { wData = s.val(); updateWaterUI(); } });
+    db.ref('users/' + myName + '/water').on('value', s => { if(s.exists()) { wData = s.val(); updateWater(); } });
     function drinkWater() {
-        const today = new Date().toLocaleDateString().replace(/\//g, '-');
+        const day = new Date().toLocaleDateString().replace(/\//g, '-');
         const amt = parseInt(document.getElementById('drink-amount').value);
-        wData.daily[today] = (wData.daily[today] || 0) + amt;
-        if(wData.daily[today] >= 2000) wData.coins = (wData.coins || 0) + 10;
+        wData.daily[day] = (wData.daily[day] || 0) + amt;
+        if(wData.daily[day] >= 2000) wData.coins = (wData.coins || 0) + 10;
         db.ref('users/' + myName + '/water').set(wData);
     }
-    function updateWaterUI() {
-        const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        const curr = wData.daily[today] || 0;
+    function updateWater() {
+        const day = new Date().toLocaleDateString().replace(/\//g, '-');
+        const curr = wData.daily[day] || 0;
         document.getElementById('current-ml').innerText = curr;
         document.getElementById('coin-count').innerText = wData.coins || 0;
         const p = Math.min((curr / 2000) * 360, 360);
         document.getElementById('water-circ').style.background = `conic-gradient(#0ea5e9 ${p}deg, #f1f5f9 0deg)`;
     }
+
+    function showPage(p) {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+        document.getElementById('p-' + p).classList.add('active');
+        event.currentTarget.classList.add('active');
+        if(p === 'games') board.resize();
+    }
+
+    function sendMessage() {
+        const t = document.getElementById('chat-input').value;
+        if(t) db.ref('sync/chat').push({ f: myName, t: t, ts: Date.now() });
+        document.getElementById('chat-input').value = "";
+    }
+    db.ref('sync/chat').limitToLast(15).on('value', s => {
+        const box = document.getElementById('chat-box'); box.innerHTML = "";
+        s.forEach(c => {
+            const m = c.val();
+            const d = document.createElement('div');
+            d.className = `p-3 rounded-2xl max-w-[85%] text-sm ${m.f === myName ? 'bg-sky-500 text-white ml-auto' : 'bg-white border'}`;
+            d.innerHTML = m.t;
+            box.appendChild(d);
+        });
+        box.scrollTop = box.scrollHeight;
+    });
+
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+    Notification.requestPermission();
 </script>
 </body>
 </html>
