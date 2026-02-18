@@ -16,123 +16,151 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
     <style>
-        :root { --main-bg: #f1f5f9; --primary: #0f172a; --accent: #0284c7; }
-        body { font-family: 'Inter', sans-serif; background: var(--main-bg); color: var(--primary); padding-bottom: 80px; }
+        :root { --main-bg: #f8fafc; --primary: #0f172a; --accent: #0284c7; }
+        body { font-family: 'Inter', sans-serif; background: var(--main-bg); color: var(--primary); padding-bottom: 90px; }
         .page { display: none; width: 100%; max-width: 480px; margin: auto; padding: 15px; animation: fadeIn 0.2s; }
         .page.active { display: block; }
-        .card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 12px; }
-        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #e2e8f0; z-index: 1000; }
-        .tab-item { border: none; background: none; color: #64748b; font-size: 0.65rem; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .card { background: white; border-radius: 16px; padding: 18px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #e2e8f0; z-index: 1000; }
+        .tab-item { border: none; background: none; color: #94a3b8; font-size: 0.7rem; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .tab-item.active { color: var(--accent); }
-        .tab-item i { font-size: 1.2rem; margin-bottom: 3px; }
-        #myBoard { width: 100%; max-width: 350px; margin: 0 auto; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .tab-item i { font-size: 1.4rem; margin-bottom: 4px; }
+        #myBoard { width: 100%; max-width: 340px; margin: 0 auto; border: 2px solid #334155; border-radius: 8px; overflow: hidden; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div id="p-home" class="page active">
-    <div class="card flex justify-between items-center bg-slate-800 text-white">
-        <div><h2 class="font-bold">HealthSync Pro</h2><p class="text-[10px] opacity-70">User: <span id="user-display">...</span></p></div>
-        <div class="text-right text-[10px]"><span id="partner-status">Partner Offline</span></div>
+    <div class="card bg-slate-900 text-white flex justify-between items-center">
+        <div>
+            <h2 class="font-bold text-lg">HealthSync Pro</h2>
+            <p class="text-[10px] text-sky-400 font-mono tracking-tighter" id="user-display">ID: ...</p>
+        </div>
+        <div class="text-right">
+            <p class="text-[10px] uppercase opacity-60">Status</p>
+            <p class="text-xs font-bold" id="partner-status">Syncing...</p>
+        </div>
     </div>
     
     <div class="grid grid-cols-2 gap-3 mb-4 text-center">
-        <button onclick="sendSignal('miss')" class="card p-4 hover:bg-sky-50 transition active:scale-95"><i class="fas fa-signal text-sky-500 mb-2"></i><br><span class="text-xs font-bold uppercase">Sync Data (Miss)</span></button>
-        <button onclick="sendSignal('love')" class="card p-4 hover:bg-sky-50 transition active:scale-95"><i class="fas fa-heart text-rose-400 mb-2"></i><br><span class="text-xs font-bold uppercase">Health Pulse</span></button>
+        <button onclick="sendSignal('miss')" class="card p-5 hover:bg-slate-50 transition active:scale-95 border-none shadow-sm">
+            <i class="fas fa-rss text-sky-500 text-xl mb-2"></i><br>
+            <span class="text-[10px] font-bold uppercase text-slate-500">Sync Ping (Miss)</span>
+            <p id="miss-counter" class="text-lg font-black mt-1">0</p>
+        </button>
+        <button onclick="sendSignal('love')" class="card p-5 hover:bg-slate-50 transition active:scale-95 border-none shadow-sm">
+            <i class="fas fa-heartbeat text-rose-500 text-xl mb-2"></i><br>
+            <span class="text-[10px] font-bold uppercase text-slate-500">Pulse (Love)</span>
+            <p id="love-counter" class="text-lg font-black mt-1">0</p>
+        </button>
     </div>
 
     <div class="card">
-        <p class="text-[10px] uppercase font-bold text-slate-400 mb-3 tracking-widest text-center">Daily Sentiment Status</p>
-        <div class="flex justify-around text-3xl pb-2 border-b">
-            <button onclick="setMood('😊')">😊</button><button onclick="setMood('😴')">😴</button>
-            <button onclick="setMood('😋')">😋</button><button onclick="setMood('😢')">😢</button>
+        <p class="text-[10px] uppercase font-bold text-slate-400 mb-4 tracking-widest text-center">Manual Mood Calibration</p>
+        <div class="flex justify-around text-4xl mb-2">
+            <button onclick="setMood('😊')" class="hover:scale-110 transition">😊</button>
+            <button onclick="setMood('😴')" class="hover:scale-110 transition">😴</button>
+            <button onclick="setMood('😋')" class="hover:scale-110 transition">😋</button>
+            <button onclick="setMood('😢')" class="hover:scale-110 transition">😢</button>
+            <button onclick="setMood('😡')" class="hover:scale-110 transition">😡</button>
         </div>
-        <p id="partner-mood" class="text-center text-xs mt-3 text-slate-500 italic italic">Waiting for update...</p>
+        <p id="partner-mood" class="text-center text-xs mt-4 text-slate-500 border-t pt-3 font-medium">Partner: Neutral</p>
     </div>
 
-    <div id="sleep-card" class="card bg-slate-900 text-white flex justify-between items-center">
-        <div><p class="text-[10px] uppercase">Sleep Tracker</p><h3 id="sleep-timer" class="text-lg font-bold">Awake</h3></div>
-        <button onclick="toggleSleep()" id="sleep-btn" class="bg-sky-600 px-4 py-2 rounded-lg text-xs font-bold">Goodnight</button>
+    <div class="card bg-indigo-50 border-indigo-100 flex justify-between items-center">
+        <div><p class="text-[10px] font-bold text-indigo-400 uppercase">Sleep State</p><h3 id="sleep-timer" class="text-lg font-bold text-indigo-900">Awake</h3></div>
+        <button onclick="toggleSleep()" id="sleep-btn" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-xs font-bold shadow-md">Set Night-mode</button>
     </div>
 </div>
 
 <div id="p-water" class="page">
     <div class="card text-center">
-        <div class="flex justify-between text-xs font-bold mb-4 text-slate-500">
-            <span>TARGET: <span id="display-goal">2000</span>ml</span>
-            <span class="text-amber-500">CREDITS: <span id="coin-count">0</span></span>
+        <div class="flex justify-between text-[10px] font-black mb-6 text-slate-400 tracking-widest">
+            <span>DAILY GOAL: <span id="display-goal" class="text-slate-900">2000</span>ML</span>
+            <span>COINS: <span id="coin-count" class="text-amber-600">0</span></span>
         </div>
-        <div id="water-circ" class="w-32 h-32 rounded-full border-8 border-slate-100 flex items-center justify-center mx-auto mb-4" style="background: conic-gradient(#0ea5e9 0deg, #f1f5f9 0deg);">
-            <div class="w-24 h-24 bg-white rounded-full flex flex-col justify-center">
-                <span id="current-ml" class="text-xl font-bold">0</span><span class="text-[8px] text-slate-400">ML</span>
+        <div id="water-circ" class="w-40 h-40 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner" style="background: conic-gradient(#0ea5e9 0deg, #f1f5f9 0deg); transition: 0.5s ease;">
+            <div class="w-32 h-32 bg-white rounded-full flex flex-col justify-center shadow-lg">
+                <span id="current-ml" class="text-3xl font-black text-sky-600">0</span>
+                <span class="text-[10px] text-slate-400 uppercase font-bold">Total ML</span>
             </div>
         </div>
-        <input type="number" id="drink-amount" value="250" class="w-full border rounded-lg p-2 mb-2 text-center text-sm">
-        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-3 rounded-lg shadow-lg active:scale-95">Log Intake</button>
+        <input type="number" id="drink-amount" value="250" class="w-full bg-slate-50 border-none rounded-xl p-3 mb-3 text-center text-sm font-bold focus:ring-2 focus:ring-sky-500">
+        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all">LOG HYDRATION</button>
     </div>
 </div>
 
 <div id="p-calories" class="page">
     <div class="card">
-        <h3 class="font-bold text-sm mb-4 uppercase">Calorie Consumption</h3>
+        <h3 class="font-bold text-xs mb-4 text-slate-400 uppercase tracking-widest">Nutrient Intake</h3>
         <div class="flex gap-2 mb-4">
-            <input type="number" id="cal-input" placeholder="Enter kcal..." class="flex-grow border rounded-lg px-3 py-2 text-sm">
-            <button onclick="addCalories()" class="bg-slate-800 text-white px-4 rounded-lg text-sm">Add</button>
+            <input type="number" id="cal-input" placeholder="kcal amount..." class="flex-grow bg-slate-50 rounded-xl px-4 py-3 text-sm border-none focus:ring-2 focus:ring-slate-900">
+            <button onclick="addCalories()" class="bg-slate-900 text-white px-6 rounded-xl text-sm font-bold">ADD</button>
         </div>
-        <div class="flex justify-between text-xs font-bold p-3 bg-slate-50 rounded-lg">
-            <span>Daily Intake:</span><span id="cal-display">0 / 2500 kcal</span>
+        <div class="flex justify-between items-center p-4 bg-slate-900 text-white rounded-2xl">
+            <span class="text-xs opacity-60">Total Daily Consumption:</span>
+            <span id="cal-display" class="font-mono font-bold">0 / 2500 kcal</span>
         </div>
     </div>
 </div>
 
 <div id="p-chat" class="page">
-    <div class="card h-[70vh] flex flex-col">
-        <div id="chat-box" class="flex-grow overflow-y-auto space-y-3 p-2 text-sm"></div>
-        <div class="flex gap-2 p-2 border-t mt-2">
-            <input type="text" id="chat-input" placeholder="Secure chat..." class="flex-grow border rounded-full px-4 py-2 text-sm">
-            <button onclick="sendMessage()" class="bg-sky-500 text-white w-10 h-10 rounded-full"><i class="fas fa-paper-plane"></i></button>
+    <div class="card h-[75vh] flex flex-col bg-slate-50 border-none">
+        <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-2"></div>
+        <div class="flex gap-2 p-2 bg-white rounded-2xl shadow-sm mt-2 border">
+            <input type="text" id="chat-input" placeholder="Secure relay..." class="flex-grow px-4 py-2 text-sm border-none focus:outline-none">
+            <button onclick="sendMessage()" class="bg-sky-500 text-white w-10 h-10 rounded-xl flex items-center justify-center"><i class="fas fa-paper-plane text-xs"></i></button>
         </div>
     </div>
 </div>
 
 <div id="p-games" class="page text-center">
     <div class="card">
-        <h3 class="font-bold text-sm mb-4">CHESS - WIN FOR WISHES</h3>
-        <div id="myBoard"></div>
-        <div class="mt-4 flex justify-between text-[10px] font-bold uppercase">
-            <span>Status: <span id="chess-status">White's Turn</span></span>
-            <span class="text-amber-600">Wish Count: <span id="wish-count">0</span></span>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-[10px] text-slate-400 uppercase tracking-widest">Neural Match (Chess)</h3>
+            <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-[10px] font-bold">Wishes: <span id="wish-count">0</span></span>
         </div>
-        <button onclick="resetChess()" class="mt-4 text-xs text-slate-400 underline">Reset Game</button>
+        <div id="myBoard"></div>
+        <p id="chess-status" class="text-xs font-bold mt-4 text-slate-600 italic">White to move</p>
+        <button onclick="resetChess()" class="mt-4 text-[10px] font-black uppercase text-rose-400 tracking-tighter hover:underline">Restart Match</button>
+    </div>
+    
+    <div class="card">
+        <h3 class="font-bold text-[10px] text-slate-400 uppercase tracking-widest mb-3">Redeem Wish (If you win)</h3>
+        <div class="flex gap-2">
+            <input type="text" id="wish-input" placeholder="Write your wish..." class="flex-grow bg-slate-50 border-none rounded-xl px-3 py-2 text-sm">
+            <button onclick="redeemWish()" class="bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-bold">SUBMIT</button>
+        </div>
     </div>
 </div>
 
 <div class="tab-bar">
-    <button class="tab-item active" onclick="showPage('home')"><i class="fas fa-chart-pie"></i>Overview</button>
-    <button class="tab-item" onclick="showPage('water')"><i class="fas fa-droplet"></i>Water</button>
-    <button class="tab-item" onclick="showPage('calories')"><i class="fas fa-bowl-food"></i>Calories</button>
-    <button class="tab-item" onclick="showPage('chat')"><i class="fas fa-comment"></i>Chat</button>
-    <button class="tab-item" onclick="showPage('games')"><i class="fas fa-chess"></i>Games</button>
+    <button class="tab-item active" onclick="showPage('home')"><i class="fas fa-grid-2"></i>Hub</button>
+    <button class="tab-item" onclick="showPage('water')"><i class="fas fa-faucet-drip"></i>Water</button>
+    <button class="tab-item" onclick="showPage('calories')"><i class="fas fa-bolt"></i>Energy</button>
+    <button class="tab-item" onclick="showPage('chat')"><i class="fas fa-shield-halved"></i>Relay</button>
+    <button class="tab-item" onclick="showPage('games')"><i class="fas fa-chess-knight"></i>Play</button>
 </div>
 
 <script>
-    // --- FIREBASE CONFIG ---
+    // --- FIREBASE CONFIG (YOUR ACTUAL DB) ---
     const firebaseConfig = {
-        apiKey: "AIzaSyAkDjO1Zk_KsqnBhOYdZw8hX6ebcDv2TM8",
-        authDomain: "watertracker-7c2d3.firebaseapp.com",
-        databaseURL: "https://watertracker-7c2d3-default-rtdb.firebaseio.com",
-        projectId: "watertracker-7c2d3",
-        storageBucket: "watertracker-7c2d3.firebasestorage.app",
-        messagingSenderId: "1085308071765",
-        appId: "1:1085308071765:web:4fd76906f520bbde2b09dc"
+        apiKey: "AIzaSyAcoPWV1RBE5DnRQHUo2EdKe0nEZOeZTr4",
+        authDomain: "cindvin-740ac.firebaseapp.com",
+        databaseURL: "https://cindvin-740ac-default-rtdb.firebaseio.com/",
+        projectId: "cindvin-740ac",
+        storageBucket: "cindvin-740ac.firebasestorage.app",
+        messagingSenderId: "413173407072",
+        appId: "1:413173407072:web:354efd879fde19dc035205"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let myName = localStorage.getItem('hs_name') || prompt("Identity (Vinod/Cindy):");
-    localStorage.setItem('hs_name', myName);
-    document.getElementById('user-display').innerText = myName;
+    let myName = localStorage.getItem('hs_pro_user') || prompt("Identify (Vinod/Cindy):");
+    if(myName) myName = myName.charAt(0).toUpperCase() + myName.slice(1);
+    localStorage.setItem('hs_pro_user', myName);
+    document.getElementById('user-display').innerText = "ID: " + myName;
     const partner = myName === 'Vinod' ? 'Cindy' : 'Vinod';
 
     // --- NAVIGATION ---
@@ -144,45 +172,50 @@
         if(p === 'games') board.resize();
     }
 
-    // --- MOOD & SIGNALS ---
+    // --- MOOD & SIGNALS SYNC ---
     function setMood(e) { db.ref('sync/moods/' + myName).set(e); }
     db.ref('sync/moods/' + partner).on('value', s => { 
-        document.getElementById('partner-mood').innerText = partner + " is currently: " + (s.val() || 'Neutral');
+        document.getElementById('partner-mood').innerText = partner + " status: " + (s.val() || 'Searching...');
     });
-    function sendSignal(t) { 
-        db.ref('sync/notif').set({ from: myName, type: t, time: Date.now() }); 
-        alert("Signal Sent!");
-    }
 
-    // --- SLEEP TRACKER ---
+    function sendSignal(t) {
+        const ref = db.ref('sync/counters/' + myName + '/' + t);
+        ref.transaction(c => (c || 0) + 1);
+        if(navigator.vibrate) navigator.vibrate(100);
+    }
+    db.ref('sync/counters/' + partner + '/miss').on('value', s => { document.getElementById('miss-counter').innerText = s.val() || 0; });
+    db.ref('sync/counters/' + partner + '/love').on('value', s => { document.getElementById('love-counter').innerText = s.val() || 0; });
+
+    // --- SLEEP SYNC ---
     let sleeping = false;
     function toggleSleep() {
         sleeping = !sleeping;
-        const status = sleeping ? "Sleeping..." : "Awake";
-        const btnText = sleeping ? "I'm Awake" : "Goodnight";
-        document.getElementById('sleep-timer').innerText = status;
-        document.getElementById('sleep-btn').innerText = btnText;
-        db.ref('users/' + myName + '/isSleeping').set(sleeping);
+        document.getElementById('sleep-timer').innerText = sleeping ? "In Sleep-mode" : "Awake";
+        document.getElementById('sleep-btn').innerText = sleeping ? "Wake Up" : "Set Night-mode";
+        db.ref('users/' + myName + '/sleeping').set(sleeping);
     }
+    db.ref('users/' + partner + '/sleeping').on('value', s => {
+        document.getElementById('partner-status').innerText = s.val() ? "Partner Resting" : "Partner Online";
+        document.getElementById('partner-status').style.color = s.val() ? "#818cf8" : "#4ade80";
+    });
 
     // --- WATER (YOUR LOGIC) ---
-    let waterData = { daily: {}, coins: 0, goal: 2000 };
-    db.ref('users/' + myName).on('value', snap => {
-        if(snap.exists()) { waterData = snap.val(); updateWaterUI(); }
-    });
+    let wData = { daily: {}, coins: 0, goal: 2000 };
+    db.ref('users/' + myName + '/water').on('value', s => { if(s.exists()) { wData = s.val(); updateWater(); } });
     function drinkWater() {
         const amt = parseInt(document.getElementById('drink-amount').value) || 0;
         const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        waterData.daily[today] = (waterData.daily[today] || 0) + amt;
-        if(waterData.daily[today] >= waterData.goal) waterData.coins += 10;
-        db.ref('users/' + myName).set(waterData);
+        wData.daily = wData.daily || {};
+        wData.daily[today] = (wData.daily[today] || 0) + amt;
+        if(wData.daily[today] >= wData.goal) wData.coins = (wData.coins || 0) + 10;
+        db.ref('users/' + myName + '/water').set(wData);
     }
-    function updateWaterUI() {
+    function updateWater() {
         const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        const curr = waterData.daily[today] || 0;
+        const curr = wData.daily ? (wData.daily[today] || 0) : 0;
         document.getElementById('current-ml').innerText = curr;
-        document.getElementById('coin-count').innerText = waterData.coins || 0;
-        const p = Math.min((curr / waterData.goal) * 360, 360);
+        document.getElementById('coin-count').innerText = wData.coins || 0;
+        const p = Math.min((curr / (wData.goal || 2000)) * 360, 360);
         document.getElementById('water-circ').style.background = `conic-gradient(#0ea5e9 ${p}deg, #f1f5f9 0deg)`;
     }
 
@@ -190,10 +223,10 @@
     function addCalories() {
         const cal = parseInt(document.getElementById('cal-input').value) || 0;
         const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        db.ref('users/' + myName + '/calories/' + today).transaction(c => (c || 0) + cal);
+        db.ref('users/' + myName + '/cal/' + today).transaction(c => (c || 0) + cal);
         document.getElementById('cal-input').value = "";
     }
-    db.ref('users/' + myName + '/calories').on('value', s => {
+    db.ref('users/' + myName + '/cal').on('value', s => {
         const today = new Date().toLocaleDateString().replace(/\//g, '-');
         document.getElementById('cal-display').innerText = (s.val()?.[today] || 0) + " / 2500 kcal";
     });
@@ -201,16 +234,16 @@
     // --- CHAT ---
     function sendMessage() {
         const t = document.getElementById('chat-input').value;
-        if(t) db.ref('sync/chat').push({ f: myName, t: t, d: Date.now() });
+        if(t) db.ref('sync/relay').push({ f: myName, t: t, ts: Date.now() });
         document.getElementById('chat-input').value = "";
     }
-    db.ref('sync/chat').limitToLast(15).on('value', s => {
+    db.ref('sync/relay').limitToLast(15).on('value', s => {
         const box = document.getElementById('chat-box'); box.innerHTML = "";
         s.forEach(c => {
             const m = c.val();
             const d = document.createElement('div');
-            d.className = `p-3 rounded-2xl max-w-[85%] ${m.f === myName ? 'bg-sky-500 text-white ml-auto' : 'bg-slate-200'}`;
-            d.innerHTML = m.t;
+            d.className = `p-3 rounded-2xl max-w-[85%] text-sm shadow-sm ${m.f === myName ? 'bg-sky-500 text-white ml-auto rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none border'}`;
+            d.innerHTML = `<span class="text-[9px] block opacity-50 uppercase font-bold">${m.f}</span>${m.t}`;
             box.appendChild(d);
         });
         box.scrollTop = box.scrollHeight;
@@ -221,25 +254,30 @@
     var board = Chessboard('myBoard', {
         draggable: true,
         position: 'start',
-        onDrop: function(source, target) {
-            var move = game.move({ from: source, to: target, promotion: 'q' });
+        onDrop: function(src, tgt) {
+            var move = game.move({ from: src, to: tgt, promotion: 'q' });
             if (move === null) return 'snapback';
-            updateChess();
             db.ref('sync/chess').set(game.fen());
         }
     });
-    db.ref('sync/chess').on('value', s => { if(s.val()) { game.load(s.val()); board.position(s.val()); updateChess(); } });
-    function updateChess() {
-        let status = game.in_checkmate() ? 'Checkmate!' : (game.turn() === 'w' ? "White's Turn" : "Black's Turn");
+    db.ref('sync/chess').on('value', s => { if(s.val()) { game.load(s.val()); board.position(s.val()); updateChessStatus(); } });
+    function updateChessStatus() {
+        let status = game.in_checkmate() ? 'Victory Detected!' : (game.turn() === 'w' ? "White Turn" : "Black Turn");
         document.getElementById('chess-status').innerText = status;
-        if(game.in_checkmate()) { 
-           alert("Victory! Wish Added."); 
-           db.ref('users/' + myName + '/wishes').transaction(w => (w || 0) + 1);
-        }
+        if(game.in_checkmate()) { db.ref('users/' + myName + '/wins').transaction(w => (w || 0) + 1); }
     }
-    db.ref('users/' + myName + '/wishes').on('value', s => { document.getElementById('wish-count').innerText = s.val() || 0; });
+    db.ref('users/' + myName + '/wins').on('value', s => { document.getElementById('wish-count').innerText = s.val() || 0; });
     function resetChess() { game.reset(); board.start(); db.ref('sync/chess').set(game.fen()); }
 
+    // --- WISH REDEEM ---
+    function redeemWish() {
+        const wish = document.getElementById('wish-input').value;
+        if(wish) {
+            db.ref('sync/wishes').push({ from: myName, text: wish, date: new Date().toLocaleDateString() });
+            alert("Wish submitted to relay!");
+            document.getElementById('wish-input').value = "";
+        }
+    }
 </script>
 </body>
 </html>
