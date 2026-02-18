@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CindVin - Always Connected</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; }
+        .heart-btn { transition: transform 0.2s; }
+        .heart-btn:active { transform: scale(0.9); }
+    </style>
+</head>
+<body class="p-4 flex flex-col items-center">
+
+    <div class="w-full max-w-md glass p-6 mb-6 text-center text-white shadow-lg">
+        <h1 class="text-3xl font-bold">CindVin ❤️</h1>
+        <p class="text-sm opacity-80">Vinod & Cindy's Space</p>
+    </div>
+
+    <div class="w-full max-w-md glass p-4 mb-6 shadow-md text-center">
+        <p class="text-white font-semibold mb-3">My Current Mood</p>
+        <div class="flex justify-around text-3xl">
+            <button onclick="setMood('😊')" class="hover:scale-125 transition">😊</button>
+            <button onclick="setMood('😴')" class="hover:scale-125 transition">😴</button>
+            <button onclick="setMood('😋')" class="hover:scale-125 transition">😋</button>
+            <button onclick="setMood('😢')" class="hover:scale-125 transition">😢</button>
+        </div>
+        <p id="current-mood" class="mt-2 text-white italic text-sm">Cindy sees: Happy 😊</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 w-full max-w-md mb-6">
+        <button onclick="sendLove('Miss')" class="glass p-6 text-white text-center heart-btn">
+            <i class="fas fa-heart-broken text-4xl mb-2"></i>
+            <p class="font-bold">Miss You</p>
+            <span id="miss-count" class="text-xs">Sent: 0</span>
+        </button>
+        <button onclick="sendLove('Love')" class="glass p-6 text-white text-center heart-btn">
+            <i class="fas fa-heart text-4xl mb-2 text-red-500"></i>
+            <p class="font-bold">Love You</p>
+            <span id="love-count" class="text-xs">Sent: 0</span>
+        </button>
+    </div>
+
+    <div class="w-full max-w-md glass p-6 mb-6 text-white">
+        <h3 class="font-bold mb-4 border-b border-white/20 pb-2"><i class="fas fa-tint mr-2"></i>Daily Trackers</h3>
+        <div class="mb-4">
+            <div class="flex justify-between text-sm mb-1"><span>Water (Glasses)</span><span id="water-val">0/8</span></div>
+            <input type="range" min="0" max="8" value="0" class="w-full" oninput="updateWater(this.value)">
+        </div>
+        <div>
+            <div class="flex justify-between text-sm mb-1"><span>Calories</span><span id="cal-val">0/2000</span></div>
+            <input type="range" min="0" max="2000" value="0" class="w-full" oninput="updateCal(this.value)">
+        </div>
+    </div>
+
+    <button id="sleep-btn" onclick="toggleSleep()" class="w-full max-w-md bg-indigo-900/50 text-white p-4 rounded-xl mb-6 flex justify-between items-center glass">
+        <span><i class="fas fa-moon mr-2"></i> Sleep Tracker</span>
+        <span id="sleep-status">I'm Awake</span>
+    </button>
+
+    <div class="w-full max-w-md glass p-4 text-white h-48 flex flex-col">
+        <div class="flex-grow overflow-y-auto text-sm opacity-80" id="chat-box">
+            <p><b>Cindy:</b> Miss you Vinod!</p>
+            <p><b>Vinod:</b> Miss you more!</p>
+        </div>
+        <input type="text" placeholder="Type a message..." class="bg-white/20 rounded px-3 py-2 mt-2 outline-none">
+    </div>
+
+    <script>
+        let missCount = 0;
+        function sendLove(type) {
+            if(type === 'Miss') {
+                missCount++;
+                document.getElementById('miss-count').innerText = "Sent: " + missCount;
+                alert("Notification sent to Cindy: Vinod misses you!");
+            } else {
+                alert("Notification sent to Cindy: Vinod loves you!");
+            }
+            if (navigator.vibrate) navigator.vibrate(200);
+        }
+
+        function setMood(emoji) {
+            document.getElementById('current-mood').innerText = "Cindy sees: " + emoji;
+        }
+
+        function updateWater(val) { document.getElementById('water-val').innerText = val + "/8"; }
+        function updateCal(val) { document.getElementById('cal-val').innerText = val + "/2000"; }
+
+        function toggleSleep() {
+            const btn = document.getElementById('sleep-status');
+            btn.innerText = btn.innerText === "I'm Awake" ? "Sleeping... 😴" : "I'm Awake";
+        }
+    </script>
+</body>
+</html>
