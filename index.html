@@ -25,20 +25,16 @@
         .tab-item { border: none; background: none; color: #999; font-size: 0.6rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .tab-item.active { color: var(--romance-red); }
         
-        /* Water UI */
         .circular-progress { width: 160px; height: 160px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--water-blue) 0deg, #ffebee 0deg); transition: 0.5s ease; margin: 15px auto; }
         .inner-circle { width: 130px; height: 130px; background: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; text-align: center; }
         
-        /* Mood & Kiss Meter */
         .mood-btn.active-mood { border: 3px solid var(--romance-red); transform: scale(1.15); background: white; box-shadow: 0 0 10px rgba(255,75,43,0.3); }
         .kiss-active { background: #fff1f2 !important; border: 2px solid #fb7185 !important; }
         @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         .heart-pulse { animation: heartbeat 0.8s infinite; color: var(--romance-red); }
 
-        /* Chat */
         .reply-box { background: #f1f5f9; border-left: 4px solid var(--romance-red); padding: 6px; border-radius: 6px; font-size: 0.7rem; margin-bottom: 5px; text-align: left; color: #64748b; }
         
-        /* Games */
         .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .ttt-cell { aspect-ratio: 1; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; cursor: pointer; border: 1px solid #eee; }
         #win-overlay { position: fixed; inset: 0; background: rgba(255, 75, 43, 0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; color: white; }
@@ -82,7 +78,7 @@
 
     <div class="card">
         <p class="text-[10px] uppercase font-bold text-slate-400 mb-4">Set My Mood</p>
-        <div id="mood-grid" class="flex justify-around text-3xl">
+        <div class="flex justify-around text-3xl">
             <button onclick="setMood('😊', this)" class="mood-btn p-2 rounded-full">😊</button>
             <button onclick="setMood('😢', this)" class="mood-btn p-2 rounded-full">😢</button>
             <button onclick="setMood('❤️', this)" class="mood-btn p-2 rounded-full">❤️</button>
@@ -94,7 +90,7 @@
     <div class="card flex justify-between items-center">
         <div class="text-left">
             <p class="text-[10px] font-bold uppercase text-slate-400">Sleep Status</p>
-            <p id="partner-sleep-txt" class="text-xs font-bold text-slate-800">Cindy is Awake ☀️</p>
+            <p id="partner-sleep-txt" class="text-xs font-bold text-slate-800">Partner is Awake ☀️</p>
         </div>
         <button id="sleep-btn" onclick="toggleSleep()" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[10px] font-bold uppercase">Goodnight</button>
     </div>
@@ -109,7 +105,7 @@
     <div class="card">
         <div class="flex justify-between font-bold text-rose-600 mb-2">
             <span>🎯 Target: <span id="display-goal">2000</span>ml</span>
-            <span style="color:#b8860b;">🪙 <span id="coin-count">0</span></span>
+            <span style="color:#gold;">🪙 <span id="coin-count">0</span></span>
         </div>
         <div class="circular-progress" id="progress-circle">
             <div class="inner-circle">
@@ -125,54 +121,54 @@
 
 <div id="p-calories" class="page">
     <div class="card">
-        <h3 class="text-xs font-bold text-rose-600 mb-4 uppercase">Daily Nutrition</h3>
+        <h3 class="text-xs font-bold text-rose-600 mb-4 uppercase tracking-widest">Daily Nutrition</h3>
         <div class="grid grid-cols-3 gap-2 mb-6">
-            <div class="bg-slate-50 p-2 rounded-xl text-[10px] uppercase font-bold">Goal<br><span class="text-lg">2000</span></div>
+            <div class="bg-slate-50 p-2 rounded-xl text-[10px] uppercase font-bold">Goal<br><span class="text-lg text-slate-800">2000</span></div>
             <div class="bg-rose-50 p-2 rounded-xl text-[10px] uppercase font-bold text-rose-400">Food<br><span id="cal-eaten" class="text-lg">0</span></div>
             <div class="bg-green-50 p-2 rounded-xl text-[10px] uppercase font-bold text-green-400">Left<br><span id="cal-left" class="text-lg">2000</span></div>
         </div>
         <div class="flex gap-2">
-            <input type="text" id="food-input" placeholder="Food name" class="flex-1 border p-2 rounded-lg text-sm">
+            <input type="text" id="food-input" placeholder="What did you eat?" class="flex-1 border p-2 rounded-lg text-sm">
             <input type="number" id="food-cal" placeholder="kcal" class="w-20 border p-2 rounded-lg text-sm">
             <button onclick="addFood()" class="bg-rose-500 text-white px-4 rounded-lg"><i class="fas fa-plus"></i></button>
         </div>
         <div class="mt-4 grid grid-cols-2 gap-4 text-left">
-            <div><p class="text-[9px] font-bold border-b mb-2">VINOD</p><div id="food-list-vinod" class="text-[10px] space-y-1"></div></div>
-            <div><p class="text-[9px] font-bold border-b mb-2">CINDY</p><div id="food-list-cindy" class="text-[10px] space-y-1"></div></div>
-        </div>
-    </div>
-</div>
-
-<div id="p-chat" class="page">
-    <div class="card h-[70vh] flex flex-col p-2 bg-slate-50 border-none">
-        <div id="chat-box" class="flex-grow overflow-y-auto space-y-3 p-2"></div>
-        <div id="reply-preview" class="hidden reply-box mx-2"></div>
-        <div class="flex gap-2 p-2 border-t">
-            <input type="text" id="chat-input" placeholder="Message..." class="flex-1 p-2 text-sm outline-none">
-            <button onclick="sendMessage()" class="bg-rose-500 text-white px-4 rounded-xl"><i class="fas fa-paper-plane"></i></button>
+            <div><p class="text-[9px] font-bold border-b mb-2">VINOD</p><div id="food-list-vinod" class="text-[10px] space-y-1 h-32 overflow-y-auto"></div></div>
+            <div><p class="text-[9px] font-bold border-b mb-2">CINDY</p><div id="food-list-cindy" class="text-[10px] space-y-1 h-32 overflow-y-auto"></div></div>
         </div>
     </div>
 </div>
 
 <div id="p-stats" class="page">
     <div class="flex justify-around mb-4 bg-white p-2 rounded-2xl border">
-        <button class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-500 text-white" onclick="updateStatsFilter('daily')">Daily</button>
-        <button class="px-3 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="updateStatsFilter('weekly')">Weekly</button>
-        <button class="px-3 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="updateStatsFilter('monthly')">Monthly</button>
+        <button class="filter-btn active" onclick="updateStatsFilter('daily', this)">Daily</button>
+        <button class="filter-btn" onclick="updateStatsFilter('weekly', this)">Weekly</button>
+        <button class="filter-btn" onclick="updateStatsFilter('monthly', this)">Monthly</button>
     </div>
     <div class="card">
-        <h3 class="text-[10px] font-black uppercase text-slate-400 mb-6 text-center tracking-widest">The Love Competition</h3>
+        <h3 class="text-[10px] font-black uppercase text-slate-400 mb-6 text-center tracking-widest">Competition Level</h3>
         <canvas id="loveChart" height="250"></canvas>
     </div>
     <div class="card">
-        <p class="text-[10px] font-bold uppercase text-slate-400 mb-3">Activity Ledger</p>
-        <div id="history-ledger" class="text-[10px] space-y-2 h-40 overflow-y-auto"></div>
+        <p class="text-[10px] font-bold uppercase text-slate-400 mb-3 text-left">Recent Activity History</p>
+        <div id="history-ledger" class="text-[10px] space-y-2 h-40 overflow-y-auto text-left"></div>
+    </div>
+</div>
+
+<div id="p-chat" class="page">
+    <div class="card h-[72vh] flex flex-col p-1 bg-slate-50 border-none shadow-inner">
+        <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-4"></div>
+        <div id="reply-preview" class="hidden reply-box mx-2"></div>
+        <div class="flex gap-2 p-3 bg-white rounded-3xl border shadow-lg mt-1">
+            <input type="text" id="chat-input" placeholder="Type a message..." class="flex-grow p-2 text-sm outline-none bg-transparent">
+            <button onclick="sendMessage()" class="bg-rose-500 text-white w-10 h-10 rounded-2xl"><i class="fas fa-paper-plane"></i></button>
+        </div>
     </div>
 </div>
 
 <div id="p-games" class="page">
     <div class="card text-center">
-        <h3 class="font-bold mb-4 uppercase text-xs">Tic-Tac-Toe</h3>
+        <h3 class="font-bold mb-4 uppercase text-xs tracking-widest">Tic-Tac-Toe</h3>
         <div class="ttt-grid" id="ttt-board">
             <div class="ttt-cell" onclick="playTTT(0)"></div>
             <div class="ttt-cell" onclick="playTTT(1)"></div>
@@ -184,8 +180,8 @@
             <div class="ttt-cell" onclick="playTTT(7)"></div>
             <div class="ttt-cell" onclick="playTTT(8)"></div>
         </div>
-        <p id="ttt-status" class="mt-4 text-xs font-bold text-rose-500">Wait for sync...</p>
-        <button onclick="resetTTT()" class="mt-4 text-[10px] text-slate-400 uppercase font-bold underline">Reset Game</button>
+        <p id="ttt-status" class="mt-4 text-xs font-bold text-rose-500">Connecting Sync...</p>
+        <button onclick="resetTTT()" class="mt-4 text-[10px] text-slate-400 font-bold uppercase underline">Reset Board</button>
     </div>
 </div>
 
@@ -199,6 +195,7 @@
 </div>
 
 <script>
+    // --- FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyAkDjO1Zk_KsqnBhOYdZw8hX6ebcDv2TM8",
         authDomain: "watertracker-7c2d3.firebaseapp.com",
@@ -214,7 +211,7 @@
     // 1. IDENTITY PROMPT
     let myName = localStorage.getItem('hs_user');
     if(!myName) {
-        myName = prompt("Enter Your Name (Vinod/Cindy):");
+        myName = prompt("Enter Name (Vinod/Cindy):");
         if(myName) localStorage.setItem('hs_user', myName.charAt(0).toUpperCase() + myName.slice(1).toLowerCase());
         else myName = "Vinod";
     }
@@ -225,7 +222,7 @@
     let replyObj = null;
     let chart;
 
-    // --- PARTNER SYNC ---
+    // --- STATUS & PRESENCE ---
     const statusRef = db.ref('status/' + myName);
     db.ref('.info/connected').on('value', snap => {
         if (snap.val()) statusRef.onDisconnect().set('offline').then(() => statusRef.set('online'));
@@ -236,12 +233,81 @@
         document.getElementById('partner-status').style.color = isOnline ? '#4ade80' : '#94a3b8';
     });
 
-    // --- KISS METER ---
+    // --- 1. SLEEP STATUS FIX ---
+    function toggleSleep() {
+        const btn = document.getElementById('sleep-btn');
+        const isSleeping = btn.innerText === "GOODNIGHT";
+        db.ref('users/' + myName + '/sleep').set(isSleeping);
+        btn.innerText = isSleeping ? "WAKE UP" : "GOODNIGHT";
+    }
+    db.ref('users/' + partner + '/sleep').on('value', s => {
+        const val = s.val();
+        document.getElementById('partner-sleep-txt').innerText = partner + (val ? " is Sleeping 😴" : " is Awake ☀️");
+    });
+    // Sync own button text on load
+    db.ref('users/' + myName + '/sleep').once('value', s => {
+        document.getElementById('sleep-btn').innerText = s.val() ? "WAKE UP" : "GOODNIGHT";
+    });
+
+    // --- 2. STATS TOGGLE FIX ---
+    let currentStatsFilter = 'daily';
+    function updateStatsFilter(filter, btn) {
+        currentStatsFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-rose-500', 'text-white'));
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.add('bg-slate-100'));
+        btn.classList.add('active', 'bg-rose-500', 'text-white');
+        btn.classList.remove('bg-slate-100');
+        renderDetailedCharts();
+    }
+
+    function renderDetailedCharts() {
+        db.ref('stats_ledger').once('value', s => {
+            const data = s.val() || {};
+            const ctx = document.getElementById('loveChart').getContext('2d');
+            const now = Date.now();
+            const limits = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
+            
+            const count = (user, type) => {
+                const entries = data[user]?.[type] || {};
+                return Object.values(entries).filter(ts => (now - ts) < limits[currentStatsFilter]).length;
+            };
+
+            const vMiss = count('Vinod', 'miss'), cMiss = count('Cindy', 'miss');
+            const vLove = count('Vinod', 'love'), cLove = count('Cindy', 'love');
+
+            if(chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Missed You', 'Love You'],
+                    datasets: [
+                        { label: 'Vinod', data: [vMiss, vLove], backgroundColor: '#38bdf8', borderRadius: 8 },
+                        { label: 'Cindy', data: [cMiss, cLove], backgroundColor: '#f43f5e', borderRadius: 8 }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+            
+            // Render History Ledger
+            let historyHtml = "";
+            ['Vinod', 'Cindy'].forEach(u => {
+                const entries = data[u] || {};
+                Object.keys(entries).forEach(type => {
+                   Object.values(entries[type]).forEach(ts => {
+                       if(now - ts < limits[currentStatsFilter]) {
+                           historyHtml += `<div class='border-b py-1'><b>${u}</b> sent ${type === 'miss' ? 'Miss You' : 'Love You'} <span class='opacity-50 float-right'>${new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
+                       }
+                   });
+                });
+            });
+            document.getElementById('history-ledger').innerHTML = historyHtml || "<p class='opacity-30'>No recent activity</p>";
+        });
+    }
+
+    // --- REMAINING CORE FEATURES ---
     const kissMeter = document.getElementById('kiss-meter');
     kissMeter.addEventListener('pointerdown', () => db.ref('kiss/' + myName).set(true));
     kissMeter.addEventListener('pointerup', () => db.ref('kiss/' + myName).set(false));
-    kissMeter.addEventListener('pointerleave', () => db.ref('kiss/' + myName).set(false));
-
     db.ref('kiss').on('value', s => {
         const k = s.val() || {};
         if (k.Vinod && k.Cindy) {
@@ -252,34 +318,26 @@
         } else {
             kissMeter.classList.remove('kiss-active');
             document.getElementById('kiss-icon').classList.remove('heart-pulse');
-            document.getElementById('kiss-text').innerText = k[myName] ? "Waiting for " + partner : "Hold for Shared Kiss";
+            document.getElementById('kiss-text').innerText = k[myName] ? "WAITING FOR " + partner : "Hold for Shared Kiss";
         }
     });
 
-    // --- SIGNALS (MISS/LOVE) ---
     function sendSignal(type) {
-        db.ref('signals/' + myName + '/' + type).push(Date.now());
-        if(navigator.vibrate) navigator.vibrate(100);
+        db.ref('stats_ledger/' + myName + '/' + type).push(Date.now());
+        if (navigator.vibrate) navigator.vibrate(100);
     }
-    db.ref('signals/Vinod').on('value', s => { if(myName === 'Vinod') document.getElementById('my-miss-count').innerText = s.val()?.miss ? Object.keys(s.val().miss).length : 0; if(myName === 'Vinod') document.getElementById('my-love-count').innerText = s.val()?.love ? Object.keys(s.val().love).length : 0; });
-    db.ref('signals/Cindy').on('value', s => { if(myName === 'Cindy') document.getElementById('my-miss-count').innerText = s.val()?.miss ? Object.keys(s.val().miss).length : 0; if(myName === 'Cindy') document.getElementById('my-love-count').innerText = s.val()?.love ? Object.keys(s.val().love).length : 0; });
+    db.ref('stats_ledger/Vinod/miss').on('value', s => { if(myName === 'Vinod') document.getElementById('my-miss-count').innerText = s.numChildren(); });
+    db.ref('stats_ledger/Vinod/love').on('value', s => { if(myName === 'Vinod') document.getElementById('my-love-count').innerText = s.numChildren(); });
+    db.ref('stats_ledger/Cindy/miss').on('value', s => { if(myName === 'Cindy') document.getElementById('my-miss-count').innerText = s.numChildren(); });
+    db.ref('stats_ledger/Cindy/love').on('value', s => { if(myName === 'Cindy') document.getElementById('my-love-count').innerText = s.numChildren(); });
 
-    // --- MOOD & SLEEP ---
     function setMood(emoji, el) {
         db.ref('moods/' + myName).set(emoji);
         document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active-mood'));
         el.classList.add('active-mood');
     }
-    db.ref('moods/' + partner).on('value', s => { document.getElementById('partner-mood-display').innerText = partner + " feels: " + (s.val() || "--"); });
+    db.ref('moods/' + partner).on('value', s => document.getElementById('partner-mood-display').innerText = partner + " feels: " + (s.val() || "--"));
 
-    function toggleSleep() {
-        const isS = document.getElementById('sleep-btn').innerText === "Goodnight";
-        db.ref('sleep/' + myName).set(isS);
-        document.getElementById('sleep-btn').innerText = isS ? "Wake Up" : "Goodnight";
-    }
-    db.ref('sleep/' + partner).on('value', s => { document.getElementById('partner-sleep-txt').innerText = partner + " is " + (s.val() ? "Sleeping 😴" : "Awake ☀️"); });
-
-    // --- WATER ---
     function drinkWater() {
         const amt = parseInt(document.getElementById('drink-amount').value) || 0;
         const today = new Date().toLocaleDateString().replace(/\//g, '-');
@@ -306,13 +364,12 @@
         document.getElementById('loading').style.display = 'none';
     });
 
-    // --- CALORIES ---
     function addFood() {
         const n = document.getElementById('food-input').value;
         const c = parseInt(document.getElementById('food-cal').value);
         if(!n || !c) return;
         const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        db.ref('calories/' + today + '/' + myName).push({n, c, ts: Date.now()});
+        db.ref('calories/' + today + '/' + myName).push({n, c});
         document.getElementById('food-input').value = ""; document.getElementById('food-cal').value = "";
     }
     db.ref('calories').on('value', s => {
@@ -320,13 +377,12 @@
         const data = s.val()?.[today] || {};
         ['Vinod', 'Cindy'].forEach(u => {
             let total = 0; let html = "";
-            Object.values(data[u] || {}).forEach(f => { total += f.c; html += `<div class='border-b py-1'>${f.n} (${f.c})</div>`; });
+            Object.values(data[u] || {}).forEach(f => { total += f.c; html += `<div class='border-b py-1'>${f.n} <span class='float-right'>${f.c}kcal</span></div>`; });
             document.getElementById('food-list-' + u.toLowerCase()).innerHTML = html;
             if(u === myName) { document.getElementById('cal-eaten').innerText = total; document.getElementById('cal-left').innerText = 2000 - total; }
         });
     });
 
-    // --- CHAT ---
     function sendMessage() {
         const t = document.getElementById('chat-input').value; if(!t) return;
         const ts = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
@@ -341,43 +397,17 @@
             const m = c.val(); const isMe = m.f === myName;
             const rHtml = m.reply ? `<div class='reply-box'>${m.reply.text}</div>` : '';
             box.innerHTML += `<div class='flex flex-col ${isMe ? 'items-end' : 'items-start'}'>
-                <div onclick="setReply('${m.t}','${m.f}')" class='p-3 rounded-2xl max-w-[80%] text-sm ${isMe ? 'bg-rose-500 text-white rounded-tr-none' : 'bg-white border rounded-tl-none'}'>${rHtml}${m.t}</div>
+                <div onclick="setReply('${m.t}','${m.f}')" class='p-3 rounded-2xl max-w-[80%] text-sm ${isMe ? 'bg-rose-500 text-white rounded-tr-none' : 'bg-white border rounded-tl-none'} shadow-sm'>${rHtml}${m.t}</div>
                 <span class='text-[8px] text-slate-400 mt-1'>${m.ts || ''}</span></div>`;
         });
         box.scrollTop = box.scrollHeight;
     });
 
-    // --- STATS ---
-    function updateStatsFilter(filter) {
-        db.ref('signals').once('value', s => {
-            const data = s.val() || {};
-            const limits = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
-            const now = Date.now();
-            
-            const count = (u, t) => Object.values(data[u]?.[t] || {}).filter(ts => (now - ts) < limits[filter]).length;
-            const vMiss = count('Vinod', 'miss'), cMiss = count('Cindy', 'miss');
-            const vLove = count('Vinod', 'love'), cLove = count('Cindy', 'love');
-
-            const ctx = document.getElementById('loveChart').getContext('2d');
-            if(chart) chart.destroy();
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: ['Miss You', 'Love You'], datasets: [
-                    { label: 'Vinod', data: [vMiss, vLove], backgroundColor: '#38bdf8', borderRadius: 8 },
-                    { label: 'Cindy', data: [cMiss, cLove], backgroundColor: '#f43f5e', borderRadius: 8 }
-                ]},
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-            });
-        });
-    }
-
-    // --- TIC TAC TOE ---
     function playTTT(i) {
         db.ref('ttt').once('value', s => {
             const game = s.val() || { board: Array(9).fill(""), turn: "Vinod" };
             if(game.turn !== myName || game.board[i]) return;
-            game.board[i] = (myName === 'Vinod' ? 'X' : 'O');
-            game.turn = partner;
+            game.board[i] = (myName === 'Vinod' ? 'X' : 'O'); game.turn = partner;
             db.ref('ttt').set(game);
         });
     }
@@ -396,14 +426,13 @@
     }
     function resetTTT() { db.ref('ttt').set({ board: Array(9).fill(""), turn: "Vinod" }); }
 
-    // --- NAV ---
     function showPage(p) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
         document.getElementById('p-' + p).classList.add('active');
         const activeTab = Array.from(document.querySelectorAll('.tab-item')).find(t => t.getAttribute('onclick').includes(p));
         if(activeTab) activeTab.classList.add('active');
-        if(p === 'stats') updateStatsFilter('daily');
+        if(p === 'stats') renderDetailedCharts();
     }
 </script>
 </body>
