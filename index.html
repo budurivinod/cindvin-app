@@ -5,286 +5,365 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HealthSync Pro</title>
     
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3105/3105807.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
-    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root { --main-bg: #f8fafc; --accent: #0284c7; }
-        body { font-family: 'Inter', sans-serif; background: var(--main-bg); padding-bottom: 90px; overflow-x: hidden; }
-        .page { display: none; width: 100%; max-width: 480px; margin: auto; padding: 15px; min-height: 80vh; }
-        .page.active { display: block !important; }
-        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 12px; border: 1px solid #f1f5f9; }
-        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #e2e8f0; z-index: 1000; }
-        .tab-item { border: none; background: none; color: #94a3b8; font-size: 0.65rem; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-        .tab-item.active { color: var(--accent); }
-        #chessBoard { width: 100%; max-width: 350px; margin: 0 auto; border: 3px solid #334155; border-radius: 12px; }
+        :root { --romance-pink: #ffafbd; --romance-red: #ff4b2b; --water-blue: #00d2ff; --gold: #f1c40f; --accent: #0284c7; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(to bottom, #ffafbd, #ffc3a0); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
+        .page { display: none; width: 100%; max-width: 450px; margin: auto; padding: 15px; padding-bottom: 90px; }
+        .page.active { display: block; animation: fadeIn 0.4s; }
+        .card { background: rgba(255, 255, 255, 0.95); border-radius: 25px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 15px; text-align: center; border: 2px solid white; }
+        
+        /* Tab Bar */
+        .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
+        .tab-item { border: none; background: none; color: #999; font-size: 0.65rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .tab-item.active { color: var(--romance-red); }
+
+        /* Kiss Meter */
         .kiss-active { background: #fff1f2 !important; border: 2px solid #fb7185 !important; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        .heart-beat { animation: pulse 0.8s infinite; color: #e11d48; }
-        .filter-btn { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; background: #f1f5f9; color: #64748b; }
-        .filter-btn.active { background: var(--accent); color: white; }
+        @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .heart-pulse { animation: heartbeat 0.8s infinite; color: var(--romance-red); }
+
+        /* Chat Reply */
+        .reply-box { background: rgba(0,0,0,0.05); border-left: 4px solid var(--romance-red); padding: 5px 10px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 5px; }
+        
+        /* Water UI Elements */
+        .circular-progress { width: 160px; height: 160px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--water-blue) 0deg, #ffebee 0deg); transition: 0.5s ease; margin: 15px auto; }
+        .inner-circle { width: 130px; height: 130px; background: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
+<div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-[9999]">💝 Syncing Our Connection...</div>
+
 <div id="p-home" class="page active">
-    <div class="card bg-slate-900 text-white flex justify-between items-center shadow-xl">
-        <div><h2 class="font-bold text-lg italic tracking-tighter">HealthSync</h2><p class="text-[10px] text-sky-400 font-mono uppercase" id="user-display">...</p></div>
-        <div class="text-right text-[10px] font-bold px-3 py-1 rounded-full bg-white/10" id="partner-status">OFFLINE</div>
+    <div class="card bg-slate-900 text-white border-none">
+        <div class="flex justify-between items-center mb-2">
+            <h2 class="font-bold">HealthSync Pro</h2>
+            <div class="text-right">
+                <span id="partner-status-name" class="text-[10px] uppercase opacity-60 block">Partner Status</span>
+                <span id="partner-online-dot" class="text-xs font-bold text-slate-400 uppercase">● Offline</span>
+            </div>
+        </div>
     </div>
-    
-    <div id="kiss-meter" class="card mt-4 py-8 text-center border-2 border-dashed border-slate-200 cursor-pointer select-none touch-none">
-        <i id="kiss-icon" class="fas fa-heart text-4xl text-slate-100 transition-colors"></i>
-        <p id="kiss-text" class="text-[10px] font-black uppercase mt-2 text-slate-400">Hold for Shared Kiss</p>
+
+    <div id="kiss-meter" class="card py-8 cursor-pointer select-none touch-none transition-all duration-300">
+        <i id="kiss-icon" class="fas fa-heart text-4xl text-slate-200"></i>
+        <p id="kiss-text" class="text-xs font-bold uppercase mt-3 text-slate-400 tracking-widest">Hold for Shared Kiss</p>
     </div>
 
     <div class="grid grid-cols-2 gap-3 mb-4">
-        <button onclick="sendSignal('miss')" class="card p-5 active:scale-95 transition text-center border-none shadow-md">
+        <button onclick="sendSignal('miss')" class="card p-5 active:scale-95 transition">
             <i class="fas fa-heart-broken text-sky-500 text-2xl mb-1"></i><br>
-            <span class="text-[10px] font-bold uppercase text-slate-400 italic">I Miss You</span>
-            <p id="my-miss-count" class="text-xl font-black text-slate-800">0</p>
+            <span class="text-[10px] font-bold uppercase text-slate-400">I Miss You</span>
+            <p id="my-miss-count" class="text-xl font-black">0</p>
         </button>
-        <button onclick="sendSignal('love')" class="card p-5 active:scale-95 transition text-center border-none shadow-md">
+        <button onclick="sendSignal('love')" class="card p-5 active:scale-95 transition">
             <i class="fas fa-heart text-rose-500 text-2xl mb-1"></i><br>
-            <span class="text-[10px] font-bold uppercase text-slate-400 italic">I Love You</span>
-            <p id="my-love-count" class="text-xl font-black text-slate-800">0</p>
+            <span class="text-[10px] font-bold uppercase text-slate-400">I Love You</span>
+            <p id="my-love-count" class="text-xl font-black">0</p>
         </button>
     </div>
 
-    <div class="card text-center">
-        <div class="flex justify-around text-4xl mb-4">
-            <button onclick="setMood('😊')">😊</button><button onclick="setMood('😢')">😢</button>
-            <button onclick="setMood('❤️')">❤️</button><button onclick="setMood('😡')">😡</button>
+    <div class="card">
+        <p class="text-[10px] uppercase font-bold text-slate-400 mb-4">Set My Mood</p>
+        <div class="flex justify-around text-3xl">
+            <button onclick="setMood('😊')" class="hover:scale-110">😊</button>
+            <button onclick="setMood('😢')" class="hover:scale-110">😢</button>
+            <button onclick="setMood('❤️')" class="hover:scale-110">❤️</button>
+            <button onclick="setMood('😡')" class="hover:scale-110">😡</button>
+            <button onclick="setMood('😭')" class="hover:scale-110">😭</button>
         </div>
-        <div class="p-4 bg-slate-50 rounded-2xl flex justify-center items-center gap-3">
-            <span id="partner-mood" class="text-3xl">😊</span>
-            <div class="text-left"><p class="text-[10px] font-bold uppercase text-slate-400 leading-none" id="partner-label">Partner</p><p id="partner-sleep-txt" class="text-xs font-bold text-slate-800 uppercase">Status: Awake</p></div>
+        <div class="mt-4 pt-4 border-t border-slate-100">
+            <p id="partner-mood-display" class="text-xs font-bold text-slate-600">Partner is feeling: --</p>
         </div>
-    </div>
-
-    <div class="card flex justify-between items-center p-4">
-        <div><p class="text-[10px] font-bold text-slate-400 uppercase">Sleep State</p><h3 id="sleep-timer" class="text-lg font-bold">Awake ☀️</h3></div>
-        <button onclick="toggleSleep()" id="sleep-btn" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[10px] font-bold uppercase">Goodnight</button>
     </div>
 </div>
 
 <div id="p-water" class="page">
-    <div class="card text-center">
-        <div class="flex justify-between text-[10px] font-bold mb-4"><span>GOAL: 2000ML</span></div>
-        <div id="water-circ" class="w-40 h-40 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-sky-100 shadow-inner">
-            <div class="text-center"><span id="current-ml" class="text-3xl font-black text-sky-600">0</span><br><span class="text-[10px] text-slate-400 uppercase font-bold">Total ML</span></div>
-        </div>
-        <input type="number" id="drink-amount" value="250" class="w-full bg-slate-50 border rounded-2xl p-4 mb-3 text-center font-bold">
-        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-5 rounded-2xl shadow-lg active:scale-95">LOG WATER 💧</button>
+    <div id="love-overlay" class="fixed inset-0 bg-[#ff4b2b] bg-opacity-95 hidden flex-col items-center justify-center text-white z-[2000]">
+        <div style="font-size:100px; animation: heartbeat 0.8s infinite alternate;">❤️</div>
+        <h1 style="font-size: 3rem;">I Love You!</h1>
+        <p>Target reached! 😘</p>
+        <button class="bg-white text-[#ff4b2b] px-8 py-3 rounded-full mt-5 font-bold" onclick="document.getElementById('love-overlay').style.display='none'">I Love You Too ❤️</button>
     </div>
-</div>
-
-<div id="p-stats" class="page">
-    <div class="flex justify-between mb-4 bg-white p-2 rounded-2xl border">
-        <button class="filter-btn active" onclick="updateStatsFilter('daily', this)">Daily</button>
-        <button class="filter-btn" onclick="updateStatsFilter('weekly', this)">Weekly</button>
-        <button class="filter-btn" onclick="updateStatsFilter('monthly', this)">Monthly</button>
-    </div>
-    <div id="stats-area" class="card space-y-6">
+    <div class="card">
+        <div class="flex justify-between font-bold text-rose-600 mb-4">
+            <span>🎯 Target: <span id="display-goal">2000</span>ml</span>
+            <span style="color:#b8860b;">🪙 <span id="coin-count">0</span></span>
         </div>
+        <div class="circular-progress" id="progress-circle">
+            <div class="inner-circle">
+                <span id="current-ml" class="text-2xl font-bold text-sky-500">0</span>
+                <span class="text-[10px] text-gray-500 uppercase">ml total</span>
+            </div>
+        </div>
+        <input type="number" id="drink-amount" value="250" class="w-full border p-3 rounded-xl mb-2 text-center">
+        <button onclick="drinkWater()" class="w-full bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-bold py-3 rounded-xl">Drink 💧</button>
+        <button onclick="resetToday()" class="w-full bg-rose-200 text-rose-700 text-xs mt-2 py-2 rounded-xl">Reset Today 🔄</button>
+    </div>
 </div>
 
 <div id="p-calories" class="page">
     <div class="card">
-        <h3 class="font-bold text-xs uppercase mb-4 text-slate-400">Nutrient Intake</h3>
-        <div class="flex gap-2 mb-4">
-            <input type="text" id="food-input" placeholder="Food name..." class="flex-grow bg-slate-50 border rounded-xl px-4 py-2 text-sm">
-            <button onclick="addCalories()" class="bg-emerald-600 text-white px-6 rounded-xl text-sm font-bold">LOG</button>
+        <h3 class="font-bold text-rose-600 mb-4">Nutrient Tracker</h3>
+        <div class="grid grid-cols-3 gap-2 mb-6">
+            <div class="bg-slate-50 p-2 rounded-xl"><p class="text-[10px] uppercase opacity-50">Goal</p><p class="font-bold">2000</p></div>
+            <div class="bg-rose-50 p-2 rounded-xl"><p class="text-[10px] uppercase text-rose-400">Food</p><p id="cal-consumed" class="font-bold">0</p></div>
+            <div class="bg-green-50 p-2 rounded-xl"><p class="text-[10px] uppercase text-green-400">Left</p><p id="cal-left" class="font-bold">2000</p></div>
         </div>
-        <div class="grid grid-cols-2 gap-4 h-64 overflow-y-auto">
-            <div id="ledger-vinod" class="text-[10px] border-r pr-2"><b>Vinod:</b></div>
-            <div id="ledger-cindy" class="text-[10px]"><b>Cindy:</b></div>
+        <div class="flex gap-2">
+            <input type="text" id="food-name" placeholder="Food name" class="flex-1 border p-2 rounded-lg text-sm">
+            <input type="number" id="food-cal" placeholder="Kcal" class="w-20 border p-2 rounded-lg text-sm">
+            <button onclick="addFood()" class="bg-rose-500 text-white px-4 rounded-lg"><i class="fas fa-plus"></i></button>
+        </div>
+        <div class="mt-6 grid grid-cols-2 gap-4 text-left">
+            <div><p class="text-[10px] font-bold border-b pb-1 mb-2 uppercase">Vinod's Day</p><div id="food-list-vinod" class="text-[10px] space-y-1 h-32 overflow-y-auto"></div></div>
+            <div><p class="text-[10px] font-bold border-b pb-1 mb-2 uppercase">Cindy's Day</p><div id="food-list-cindy" class="text-[10px] space-y-1 h-32 overflow-y-auto"></div></div>
         </div>
     </div>
 </div>
 
-<div id="p-games" class="page">
-    <div class="card text-center">
-        <div id="chessBoard" class="mb-4"></div>
-        <div class="flex justify-between text-[10px] font-bold px-2">
-            <span id="chess-status" class="bg-slate-100 px-3 py-1 rounded-full uppercase">White's Turn</span>
-            <span class="text-amber-600">Wishes: <span id="wish-count">0</span></span>
-        </div>
-        <button onclick="resetChess()" class="w-full mt-4 border border-slate-200 py-3 rounded-xl text-[10px] font-black uppercase text-rose-500">Reset Match</button>
+<div id="p-stats" class="page">
+    <div class="flex justify-between mb-4 bg-white p-2 rounded-2xl shadow-sm border">
+        <button class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-500 text-white" onclick="renderDetailedStats('daily')">Daily</button>
+        <button class="px-3 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="renderDetailedStats('weekly')">Weekly</button>
+        <button class="px-3 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="renderDetailedStats('monthly')">Monthly</button>
     </div>
+    <div id="stats-area" class="space-y-4"></div>
 </div>
 
 <div id="p-chat" class="page">
-    <div class="card h-[75vh] flex flex-col bg-slate-50 p-2">
-        <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-2"></div>
-        <div class="flex gap-2 p-3 bg-white rounded-3xl border shadow-sm mt-2">
-            <input type="text" id="chat-input" placeholder="Message..." class="flex-grow px-2 py-1 text-sm outline-none">
-            <button onclick="sendMessage()" class="bg-sky-500 text-white w-10 h-10 rounded-2xl flex items-center justify-center"><i class="fas fa-paper-plane text-xs"></i></button>
+    <div class="card h-[70vh] flex flex-col p-2">
+        <div id="chat-box" class="flex-grow overflow-y-auto space-y-3 p-2"></div>
+        <div id="reply-preview" class="hidden reply-box mx-2"></div>
+        <div class="flex gap-2 p-2 border-t">
+            <input type="text" id="chat-input" placeholder="Message..." class="flex-1 p-2 text-sm outline-none">
+            <button onclick="sendMessage()" class="bg-rose-500 text-white px-4 rounded-xl"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 </div>
 
 <div class="tab-bar">
-    <button class="tab-item active" onclick="showPage('home')"><i class="fas fa-home"></i>Home</button>
-    <button class="tab-item" onclick="showPage('water')"><i class="fas fa-droplet"></i>Water</button>
-    <button class="tab-item" onclick="showPage('stats')"><i class="fas fa-trophy"></i>Stats</button>
-    <button class="tab-item" onclick="showPage('calories')"><i class="fas fa-utensils"></i>Cals</button>
-    <button class="tab-item" onclick="showPage('games')"><i class="fas fa-chess-knight"></i>Play</button>
-    <button class="tab-item" onclick="showPage('chat')"><i class="fas fa-comment"></i>Chat</button>
+    <button class="tab-item active" onclick="showPage('home')">🏠<span>Home</span></button>
+    <button class="tab-item" onclick="showPage('water')">💧<span>Water</span></button>
+    <button class="tab-item" onclick="showPage('calories')">🥗<span>Calories</span></button>
+    <button class="tab-item" onclick="showPage('chat')">💬<span>Chat</span></button>
+    <button class="tab-item" onclick="showPage('stats')">📊<span>Stats</span></button>
 </div>
 
 <script>
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
-        apiKey: "AIzaSyAcoPWV1RBE5DnRQHUo2EdKe0nEZOeZTr4",
-        authDomain: "cindvin-740ac.firebaseapp.com",
-        databaseURL: "https://cindvin-740ac-default-rtdb.firebaseio.com/",
-        projectId: "cindvin-740ac",
-        storageBucket: "cindvin-740ac.firebasestorage.app",
-        messagingSenderId: "413173407072",
-        appId: "1:413173407072:web:354efd879fde19dc035205"
+        apiKey: "AIzaSyAkDjO1Zk_KsqnBhOYdZw8hX6ebcDv2TM8",
+        authDomain: "watertracker-7c2d3.firebaseapp.com",
+        databaseURL: "https://watertracker-7c2d3-default-rtdb.firebaseio.com",
+        projectId: "watertracker-7c2d3",
+        storageBucket: "watertracker-7c2d3.firebasestorage.app",
+        messagingSenderId: "1085308071765",
+        appId: "1:1085308071765:web:4fd76906f520bbde2b09dc"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let myName = localStorage.getItem('hs_pro_v_final_final') || prompt("Identify (Vinod/Cindy):");
-    if(myName) myName = myName.charAt(0).toUpperCase() + myName.slice(1);
-    localStorage.setItem('hs_pro_v_final_final', myName);
+    let myName = localStorage.getItem('hs_user') || prompt("Enter Name (Vinod/Cindy):");
+    localStorage.setItem('hs_user', myName);
     const partner = myName === 'Vinod' ? 'Cindy' : 'Vinod';
-    document.getElementById('user-display').innerText = "Logged in: " + myName;
-    document.getElementById('partner-label').innerText = partner;
+    
+    let stats = { daily: {}, coins: 0, goal: 2000, streak: 0, lastCheck: "" };
+    let replyObj = null;
 
-    // --- NAVIGATION ---
-    function showPage(p) {
-        $('.page').hide().removeClass('active');
-        $('.tab-item').removeClass('active');
-        $('#p-' + p).show().addClass('active');
-        $(event.currentTarget).addClass('active');
-        if(p === 'games' && board) board.resize();
-        if(p === 'stats') fetchStats();
-    }
-
-    // --- WATER FIX ---
-    function drinkWater() {
-        const amt = parseInt($('#drink-amount').val());
-        db.ref('users/' + myName + '/water').transaction(c => (c || 0) + amt);
-    }
-    db.ref('users/' + myName + '/water').on('value', s => {
-        const curr = s.val() || 0;
-        $('#current-ml').text(curr); // Fixes [object Object]
-        const p = Math.min((curr / 2000) * 360, 360);
-        $('#water-circ').css('background', `conic-gradient(#0ea5e9 ${p}deg, #f1f5f9 0deg)`);
+    // --- 1. PARTNER STATUS & PRESENCE ---
+    const statusRef = db.ref('status/' + myName);
+    db.ref('.info/connected').on('value', snap => {
+        if (snap.val()) statusRef.onDisconnect().set('offline').then(() => statusRef.set('online'));
+    });
+    db.ref('status/' + partner).on('value', s => {
+        const isOnline = s.val() === 'online';
+        document.getElementById('partner-online-dot').innerText = isOnline ? '● Online' : '● Offline';
+        document.getElementById('partner-online-dot').className = isOnline ? 'text-xs font-bold text-green-400 uppercase' : 'text-xs font-bold text-slate-400 uppercase';
     });
 
-    // --- KISS & VIBRATE ---
-    $('#kiss-meter').on('pointerdown', () => db.ref('kiss/' + myName).set(true));
-    $('#kiss-meter').on('pointerup mouseleave', () => db.ref('kiss/' + myName).set(false));
+    // --- 2. KISS METER LOGIC ---
+    const kissMeter = document.getElementById('kiss-meter');
+    kissMeter.addEventListener('pointerdown', () => db.ref('kiss/' + myName).set(true));
+    kissMeter.addEventListener('pointerup', () => db.ref('kiss/' + myName).set(false));
+    kissMeter.addEventListener('pointerleave', () => db.ref('kiss/' + myName).set(false));
+
     db.ref('kiss').on('value', s => {
-        const both = s.val()?.Vinod && s.val()?.Cindy;
-        if(both) {
-            $('#kiss-meter').addClass('kiss-active'); $('#kiss-icon').addClass('heart-beat');
-            if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        const k = s.val() || {};
+        const both = k.Vinod && k.Cindy;
+        if (both) {
+            kissMeter.classList.add('kiss-active');
+            document.getElementById('kiss-icon').classList.add('heart-pulse');
+            document.getElementById('kiss-text').innerText = "KISSING IN REAL-TIME!";
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         } else {
-            $('#kiss-meter').removeClass('kiss-active'); $('#kiss-icon').removeClass('heart-beat');
+            kissMeter.classList.remove('kiss-active');
+            document.getElementById('kiss-icon').classList.remove('heart-pulse');
+            document.getElementById('kiss-text').innerText = k[myName] ? "WAITING FOR " + partner : "Hold for Shared Kiss";
+            document.getElementById('kiss-icon').style.color = k[myName] ? "#fb7185" : "#e2e8f0";
         }
     });
 
-    // --- CHAT WITH TIMESTAMP ---
-    function sendMessage() {
-        const t = $('#chat-input').val();
-        if(t) db.ref('sync/chat').push({ f: myName, t: t, ts: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
-        $('#chat-input').val("");
+    // --- 3. MOOD SETTING ---
+    function setMood(emoji) { db.ref('moods/' + myName).set(emoji); }
+    db.ref('moods/' + partner).on('value', s => {
+        document.getElementById('partner-mood-display').innerText = partner + " is feeling: " + (s.val() || "😊");
+    });
+
+    // --- 4. WATER LOGIC (YOUR ORIGINAL) ---
+    db.ref('users/' + myName).on('value', (snap) => {
+        if(snap.exists()) { stats = snap.val(); }
+        document.getElementById('loading').style.display = 'none';
+        updateWaterUI();
+    });
+
+    function drinkWater() {
+        const amt = parseInt(document.getElementById('drink-amount').value) || 0;
+        const today = new Date().toLocaleDateString().replace(/\//g, '-');
+        stats.daily[today] = (stats.daily[today] || 0) + amt;
+        if (stats.daily[today] >= stats.goal && (stats.daily[today] - amt) < stats.goal) {
+            stats.coins = (stats.coins || 0) + 10;
+            document.getElementById('love-overlay').style.display = 'flex';
+        }
+        db.ref('users/' + myName).set(stats);
+        db.ref('stats_ledger/' + myName + '/water').push({amt, ts: Date.now()});
     }
-    db.ref('sync/chat').limitToLast(15).on('value', s => {
-        let h = "";
+
+    function updateWaterUI() {
+        const today = new Date().toLocaleDateString().replace(/\//g, '-');
+        const curr = stats.daily[today] || 0;
+        document.getElementById('current-ml').innerText = curr;
+        document.getElementById('coin-count').innerText = stats.coins || 0;
+        const p = Math.min((curr / stats.goal) * 360, 360);
+        document.getElementById('progress-circle').style.background = `conic-gradient(var(--water-blue) ${p}deg, #ffebee 0deg)`;
+    }
+
+    // --- 5. CALORIE TRACKER (FATSECRET STYLE) ---
+    function addFood() {
+        const name = document.getElementById('food-name').value;
+        const cal = parseInt(document.getElementById('food-cal').value);
+        if(!name || !cal) return;
+        const today = new Date().toLocaleDateString().replace(/\//g, '-');
+        db.ref('calories/' + today + '/' + myName).push({name, cal, ts: Date.now()});
+        document.getElementById('food-name').value = '';
+        document.getElementById('food-cal').value = '';
+    }
+
+    db.ref('calories').on('value', s => {
+        const today = new Date().toLocaleDateString().replace(/\//g, '-');
+        const data = s.val()?.[today] || {};
+        ['Vinod', 'Cindy'].forEach(user => {
+            let total = 0;
+            let html = '';
+            const entries = data[user] || {};
+            Object.values(entries).forEach(e => {
+                total += e.cal;
+                html += `<div class="flex justify-between border-b py-1"><span>${e.name}</span><span>${e.cal}</span></div>`;
+            });
+            document.getElementById('food-list-' + user.toLowerCase()).innerHTML = html;
+            if(user === myName) {
+                document.getElementById('cal-consumed').innerText = total;
+                document.getElementById('cal-left').innerText = 2000 - total;
+            }
+        });
+    });
+
+    // --- 6. CHAT WITH REPLIES ---
+    function sendMessage() {
+        const t = document.getElementById('chat-input').value;
+        if(!t) return;
+        db.ref('chat').push({ f: myName, t: t, reply: replyObj, ts: Date.now() });
+        document.getElementById('chat-input').value = "";
+        cancelReply();
+    }
+
+    function setReply(text, sender) {
+        replyObj = { text, sender };
+        document.getElementById('reply-preview').innerHTML = `<small>Replying to ${sender}:</small><br>${text}`;
+        document.getElementById('reply-preview').classList.remove('hidden');
+    }
+
+    function cancelReply() { replyObj = null; document.getElementById('reply-preview').classList.add('hidden'); }
+
+    db.ref('chat').limitToLast(15).on('value', s => {
+        const box = document.getElementById('chat-box');
+        box.innerHTML = '';
         s.forEach(c => {
             const m = c.val();
-            h += `<div class="flex flex-col ${m.f === myName ? 'items-end' : 'items-start'}">
-                    <div class="p-3 rounded-2xl max-w-[85%] text-sm ${m.f === myName ? 'bg-sky-500 text-white rounded-tr-none' : 'bg-white border rounded-tl-none'} shadow-sm">${m.t}</div>
-                    <span class="text-[8px] text-slate-400 mt-1 uppercase">${m.ts || ''}</span>
-                  </div>`;
-        });
-        $('#chat-box').html(h).scrollTop(9999);
-    });
-
-    // --- CHESS ENGINE ---
-    var game = new Chess();
-    var board = Chessboard('chessBoard', {
-        draggable: true, position: 'start',
-        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-        onDragStart: (src, piece) => {
-            if (game.game_over()) return false;
-            if ((myName === 'Vinod' && piece.search(/^b/) !== -1) || (myName === 'Cindy' && piece.search(/^w/) !== -1)) return false;
-        },
-        onDrop: (src, tgt) => {
-            let m = game.move({ from: src, to: tgt, promotion: 'q' });
-            if (m === null) return 'snapback';
-            db.ref('sync/chess').set(game.fen());
-        }
-    });
-    db.ref('sync/chess').on('value', s => { if(s.val() && s.val() !== game.fen()){ game.load(s.val()); board.position(s.val()); } });
-    function resetChess() { game.reset(); board.start(); db.ref('sync/chess').set(game.fen()); }
-
-    // --- STATS SYSTEM ---
-    let currentFilter = 'daily';
-    function updateStatsFilter(f, btn) { currentFilter = f; $('.filter-btn').removeClass('active'); $(btn).addClass('active'); fetchStats(); }
-    function fetchStats() {
-        db.ref('stats').once('value', s => {
-            const d = s.val() || { Vinod: {}, Cindy: {} };
-            const vm = d.Vinod?.miss || 0, cm = d.Cindy?.miss || 0;
-            const vl = d.Vinod?.love || 0, cl = d.Cindy?.love || 0;
-            const renBar = (v, c, l) => `
-                <div class="mb-4">
-                    <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">${l} (${currentFilter})</p>
-                    <div class="flex h-3 rounded-full overflow-hidden bg-slate-100">
-                        <div class="bg-sky-400" style="width:${(v/(v+c||1))*100}%"></div>
-                        <div class="bg-rose-400" style="width:${(c/(v+c||1))*100}%"></div>
+            const isMe = m.f === myName;
+            const rHtml = m.reply ? `<div class="bg-black/5 p-1 rounded text-[10px] italic">@${m.reply.sender}: ${m.reply.text}</div>` : '';
+            box.innerHTML += `
+                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                    <div onclick="setReply('${m.t}', '${m.f}')" class="p-3 rounded-2xl max-w-[80%] text-sm ${isMe ? 'bg-rose-500 text-white rounded-tr-none' : 'bg-white border rounded-tl-none'}">
+                        ${rHtml}${m.t}
                     </div>
-                    <div class="flex justify-between text-[9px] font-bold mt-1"><span>Vinod: ${v}</span><span>Cindy: ${c}</span></div>
                 </div>`;
-            $('#stats-area').html(renBar(vm, cm, "Miss You Count") + renBar(vl, cl, "Love Shared"));
+        });
+        box.scrollTop = box.scrollHeight;
+    });
+
+    // --- 7. DETAILED STATS ---
+    function sendSignal(type) {
+        db.ref('stats_ledger/' + myName + '/' + type).push(Date.now());
+    }
+
+    function renderDetailedStats(filter) {
+        db.ref('stats_ledger').once('value', s => {
+            const data = s.val() || {};
+            const types = ['miss', 'love', 'water'];
+            let html = '';
+            types.forEach(type => {
+                const vCount = countData(data['Vinod']?.[type], filter);
+                const cCount = countData(data['Cindy']?.[type], filter);
+                html += `<div class="card p-3">
+                    <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">${type} Count (${filter})</p>
+                    <div class="flex justify-between items-center px-4">
+                        <div class="text-sky-500"><b>Vinod</b><br><span class="text-xl">${vCount}</span></div>
+                        <div class="text-rose-500"><b>Cindy</b><br><span class="text-xl">${cCount}</span></div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('stats-area').innerHTML = html;
         });
     }
 
-    // --- MOOD & SLEEP ---
-    function setMood(e) { db.ref('users/' + myName + '/mood').set(e); }
-    db.ref('users/' + partner + '/mood').on('value', s => { $('#partner-mood').text(s.val() || '😊'); });
-    function toggleSleep() {
-        const isS = $('#sleep-btn').text() === "GOODNIGHT";
-        db.ref('users/' + myName + '/sleeping').set(isS);
-        $('#sleep-timer').text(isS ? "Sleeping..." : "Awake");
-        $('#sleep-btn').text(isS ? "WAKE UP" : "GOODNIGHT");
+    function countData(entries, filter) {
+        if(!entries) return 0;
+        const now = Date.now();
+        const limits = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
+        let count = 0;
+        Object.values(entries).forEach(val => {
+            const ts = typeof val === 'object' ? val.ts : val;
+            if(now - ts < limits[filter]) {
+                if(typeof val === 'object' && val.amt) count += val.amt;
+                else count++;
+            }
+        });
+        return count;
     }
-    db.ref('users/' + partner + '/sleeping').on('value', s => { $('#partner-sleep-txt').text(s.val() ? "Sleeping 😴" : "Awake ☀️"); });
 
-    // --- CALORIES LEDGER ---
-    function addCalories() {
-        const f = $('#food-input').val();
-        db.ref('ledger/' + myName).push({ item: f, cal: 150 });
-        $('#food-input').val("");
+    // --- 8. NAV ---
+    function showPage(p) {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+        document.getElementById('p-' + p).classList.add('active');
+        const activeTab = Array.from(document.querySelectorAll('.tab-item')).find(t => t.getAttribute('onclick').includes(p));
+        if(activeTab) activeTab.classList.add('active');
+        if(p === 'stats') renderDetailedStats('daily');
     }
-    db.ref('ledger').on('value', s => {
-        const d = s.val() || {};
-        const ren = (u, el) => {
-            let h = `<b>${u}:</b><br>`;
-            Object.values(d[u] || {}).forEach(e => h += `${e.item}<br>`);
-            document.getElementById(el).innerHTML = h;
-        };
-        ren('Vinod', 'ledger-vinod'); ren('Cindy', 'ledger-cindy');
-    });
 
-    // --- SIGNALS ---
-    function sendSignal(t) { db.ref('stats/' + myName + '/' + t).transaction(c => (c || 0) + 1); }
-    db.ref('stats/' + myName).on('value', s => {
-        $('#my-miss-count').text(s.val()?.miss || 0);
-        $('#my-love-count').text(s.val()?.love || 0);
-    });
+    // Identify user and partner stats in real-time
+    db.ref('stats_ledger/' + myName + '/miss').on('value', s => { document.getElementById('my-miss-count').innerText = s.numChildren(); });
+    db.ref('stats_ledger/' + myName + '/love').on('value', s => { document.getElementById('my-love-count').innerText = s.numChildren(); });
 </script>
 </body>
 </html>
