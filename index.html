@@ -22,33 +22,35 @@
         .page.active { display: block !important; }
         .card { background: rgba(255, 255, 255, 0.95); border-radius: 25px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 15px; border: 2px solid white; }
         
-        /* iPhone Navigation Fix */
         .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: white; display: flex; justify-content: space-around; padding: 12px 0 45px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 9999; border-top-left-radius: 25px; border-top-right-radius: 25px; }
         .tab-item { border: none; background: none; color: #999; font-size: 0.6rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .tab-item.active { color: var(--romance-red); }
         
-        /* Interactive Elements */
-        .mood-btn.active-mood { border: 3px solid var(--romance-red); transform: scale(1.1); background: white; box-shadow: 0 0 15px rgba(255,75,43,0.3); }
-        .kiss-active { background: #fff1f2 !important; border: 2px solid #fb7185 !important; }
-        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-        .heart-pulse { animation: heartbeat 0.8s infinite; color: var(--romance-red); }
-
-        /* Game Elements */
-        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .ttt-cell { aspect-ratio: 1; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; cursor: pointer; border: 1px solid #eee; }
+        /* Water UI Elements */
+        .circular-progress { width: 160px; height: 160px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--water-blue) 0deg, #ffebee 0deg); transition: 0.5s ease; margin: 15px auto; }
+        .inner-circle { width: 130px; height: 130px; background: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+        
+        /* Hangman Canvas Styling */
+        #hangman-canvas { background: #f8fafc; border-radius: 15px; margin: 10px auto; display: block; border: 1px solid #eee; }
         .letter-btn { width: 32px; height: 38px; background: #334155; color: white; border-radius: 5px; font-weight: bold; margin: 2px; font-size: 0.8rem; }
         .letter-btn:disabled { opacity: 0.2; text-decoration: line-through; }
         
-        /* Water UI */
-        .circular-progress { width: 160px; height: 160px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--water-blue) 0deg, #ffebee 0deg); transition: 0.5s ease; margin: 15px auto; }
-        .inner-circle { width: 130px; height: 130px; background: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; text-align: center; }
-
-        .reply-box { background: #f1f5f9; border-left: 4px solid var(--romance-red); padding: 5px; border-radius: 6px; font-size: 0.7rem; margin-bottom: 5px; text-align: left; }
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .ttt-cell { aspect-ratio: 1; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; cursor: pointer; border: 1px solid #eee; }
+        
+        #win-overlay { position: fixed; inset: 0; background: rgba(255, 75, 43, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; color: white; text-align: center; }
     </style>
 </head>
 <body>
 
-<div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-[10000]">💝 RESTORING YOUR APP...</div>
+<div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-[10000]">💝 Connecting Our Love...</div>
+
+<div id="win-overlay">
+    <i class="fas fa-trophy text-6xl mb-4"></i>
+    <h1 class="text-3xl font-black mb-2" id="winner-name">WINNER!</h1>
+    <p class="mb-6 font-bold">+10 Coins Added!</p>
+    <button onclick="closeWinOverlay()" class="bg-white text-rose-500 px-8 py-3 rounded-full font-bold shadow-lg">Play Again</button>
+</div>
 
 <div id="p-home" class="page active">
     <div class="card bg-slate-900 text-white border-none flex justify-between items-center">
@@ -56,38 +58,22 @@
         <div class="text-right text-xs font-bold" id="partner-status">● Offline</div>
     </div>
 
-    <div id="kiss-meter" class="card py-10 cursor-pointer select-none touch-none text-center">
-        <i id="kiss-icon" class="fas fa-heart text-4xl text-slate-100 transition-all duration-300"></i>
-        <p id="kiss-text" class="text-xs font-bold uppercase mt-3 text-slate-400">Hold for Shared Kiss</p>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3 mb-4">
+    <div class="grid grid-cols-2 gap-3 mb-4 mt-4">
         <button onclick="sendSignal('miss')" class="card p-5 active:scale-95 transition">
             <i class="fas fa-heart-broken text-sky-500 text-2xl mb-1"></i><br>
             <span class="text-[10px] font-bold uppercase text-slate-400">I Miss You</span>
-            <p id="my-miss-count" class="text-xl font-black">0</p>
+            <p id="my-miss-count" class="text-xl font-black text-slate-800">0</p>
         </button>
         <button onclick="sendSignal('love')" class="card p-5 active:scale-95 transition">
             <i class="fas fa-heart text-rose-500 text-2xl mb-1"></i><br>
             <span class="text-[10px] font-bold uppercase text-slate-400">I Love You</span>
-            <p id="my-love-count" class="text-xl font-black">0</p>
+            <p id="my-love-count" class="text-xl font-black text-slate-800">0</p>
         </button>
-    </div>
-
-    <div class="card text-center">
-        <p class="text-[10px] uppercase font-bold text-slate-400 mb-4">Set My Mood</p>
-        <div class="flex justify-around text-3xl">
-            <button onclick="setMood('😊', this)" class="mood-btn p-1 rounded-full transition">😊</button>
-            <button onclick="setMood('😢', this)" class="mood-btn p-1 rounded-full transition">😢</button>
-            <button onclick="setMood('❤️', this)" class="mood-btn p-1 rounded-full transition">❤️</button>
-            <button onclick="setMood('😡', this)" class="mood-btn p-1 rounded-full transition">😡</button>
-        </div>
-        <p id="partner-mood" class="mt-4 text-xs italic text-slate-600">Partner status: --</p>
     </div>
 
     <div class="card flex justify-between items-center">
         <p id="partner-sleep-txt" class="text-xs font-bold">Partner is Awake ☀️</p>
-        <button id="sleep-btn" onclick="toggleSleep()" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[10px] font-bold shadow-lg">Goodnight</button>
+        <button id="sleep-btn" onclick="toggleSleep()" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[10px] font-bold shadow-lg uppercase">Goodnight</button>
     </div>
 </div>
 
@@ -105,45 +91,7 @@
         </div>
         <input type="number" id="drink-amt" value="250" class="w-full border p-3 rounded-xl mb-2 text-center font-bold">
         <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-4 rounded-xl shadow-lg">Add Water 💧</button>
-        <button onclick="resetWater()" class="w-full bg-rose-100 text-rose-600 text-[10px] mt-3 py-2 rounded-xl font-bold uppercase">Reset Today</button>
-    </div>
-</div>
-
-<div id="p-calories" class="page">
-    <div class="card">
-        <h3 class="text-xs font-black text-rose-500 uppercase mb-4 tracking-widest">Nutrition Tracker</h3>
-        <div class="flex gap-2 mb-6">
-            <input type="text" id="food-n" placeholder="Food item" class="flex-grow border p-2 rounded-xl text-sm">
-            <input type="number" id="food-c" placeholder="kcal" class="w-20 border p-2 rounded-xl text-sm">
-            <button onclick="addFood()" class="bg-rose-500 text-white px-4 rounded-xl shadow-md"><i class="fas fa-plus"></i></button>
-        </div>
-        <div class="grid grid-cols-2 gap-4 h-64 overflow-y-auto">
-            <div id="log-vinod" class="text-[10px] border-r pr-2"><b>VINOD LOG</b></div>
-            <div id="log-cindy" class="text-[10px]"><b>CINDY LOG</b></div>
-        </div>
-    </div>
-</div>
-
-<div id="p-chat" class="page">
-    <div class="card h-[72vh] flex flex-col p-1 bg-slate-50 border-none shadow-inner">
-        <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-4"></div>
-        <div id="reply-tag" class="hidden bg-slate-200 p-2 text-[10px] rounded-t-xl mx-2 font-bold"></div>
-        <div class="flex gap-2 p-3 bg-white rounded-3xl border shadow-lg mt-2 mx-1">
-            <input type="text" id="chat-in" placeholder="Message..." class="flex-grow p-1 text-sm outline-none bg-transparent">
-            <button onclick="sendChat()" class="bg-rose-500 text-white w-10 h-10 rounded-2xl shadow-lg"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-</div>
-
-<div id="p-stats" class="page">
-    <div class="flex justify-around mb-4 bg-white p-2 rounded-2xl border shadow-sm">
-        <button class="px-4 py-1 text-[10px] font-bold rounded-lg bg-rose-500 text-white" onclick="updateStats('daily', this)">Daily</button>
-        <button class="px-4 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="updateStats('weekly', this)">Weekly</button>
-        <button class="px-4 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="updateStats('monthly', this)">Monthly</button>
-    </div>
-    <div class="card">
-        <h3 class="text-[10px] font-black text-slate-400 uppercase mb-4 text-center">Love Comparison Chart</h3>
-        <canvas id="loveChart" height="300"></canvas>
+        <button onclick="resetWaterToday()" class="w-full bg-rose-100 text-rose-600 text-[10px] mt-3 py-2 rounded-xl font-bold uppercase">Reset Today</button>
     </div>
 </div>
 
@@ -154,25 +102,26 @@
     </div>
     
     <div id="game-ttt" class="card">
-        <div class="ttt-grid">
+        <div class="ttt-grid" id="ttt-board">
             <div class="ttt-cell" onclick="playTTT(0)"></div><div class="ttt-cell" onclick="playTTT(1)"></div><div class="ttt-cell" onclick="playTTT(2)"></div>
             <div class="ttt-cell" onclick="playTTT(3)"></div><div class="ttt-cell" onclick="playTTT(4)"></div><div class="ttt-cell" onclick="playTTT(5)"></div>
             <div class="ttt-cell" onclick="playTTT(6)"></div><div class="ttt-cell" onclick="playTTT(7)"></div><div class="ttt-cell" onclick="playTTT(8)"></div>
         </div>
         <p id="ttt-status" class="mt-4 text-xs font-bold text-rose-500">Wait for turn...</p>
-        <button onclick="resetTTT()" class="w-full mt-2 text-[9px] uppercase font-bold underline">Reset Match</button>
+        <button onclick="resetTTT()" class="w-full mt-2 text-[9px] uppercase font-bold underline">Reset Board</button>
     </div>
 
     <div id="game-hangman" class="card hidden text-center">
         <div id="h-setup">
-            <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase">Host Word for Partner</p>
-            <input type="password" id="h-word" class="border p-2 rounded-xl w-full mb-2 text-center" placeholder="Secret word">
-            <button onclick="setHWord()" class="bg-rose-500 text-white w-full py-2 rounded-xl font-bold">Start Round</button>
+            <p class="text-[10px] font-bold text-slate-400 mb-2 uppercase">Create Secret Word</p>
+            <input type="password" id="h-word-input" class="border p-2 rounded-xl w-full mb-2 text-center" placeholder="Secret word for partner">
+            <button onclick="setHangmanWord()" class="bg-rose-500 text-white w-full py-2 rounded-xl font-bold uppercase">Host Round</button>
         </div>
         <div id="h-play" class="hidden">
-            <div id="h-display" class="text-3xl tracking-widest font-bold mb-6 uppercase text-slate-800"></div>
-            <div id="h-keyboard" class="flex flex-wrap justify-center mb-4"></div>
-            <p class="text-[9px] uppercase font-bold text-slate-400">Stage: <span id="h-strikes">0</span>/8</p>
+            <canvas id="hangman-canvas" width="150" height="150"></canvas>
+            <div id="h-display" class="text-3xl tracking-widest font-bold mb-6 text-slate-800 uppercase"></div>
+            <div id="h-keyboard" class="flex flex-wrap justify-center mb-2"></div>
+            <p class="text-[9px] uppercase font-bold text-slate-400">Attempts Used: <span id="h-strikes">0</span>/6</p>
         </div>
     </div>
 </div>
@@ -180,14 +129,11 @@
 <div class="tab-bar">
     <button class="tab-item active" onclick="showPage('home')">🏠<span>HUB</span></button>
     <button class="tab-item" onclick="showPage('water')">💧<span>WATER</span></button>
-    <button class="tab-item" onclick="showPage('calories')">🥗<span>CALS</span></button>
-    <button class="tab-item" onclick="showPage('chat')">💬<span>CHAT</span></button>
-    <button class="tab-item" onclick="showPage('stats')">📊<span>STATS</span></button>
     <button class="tab-item" onclick="showPage('games')">🎮<span>PLAY</span></button>
 </div>
 
 <script>
-    // --- FIREBASE CONFIG ---
+    // --- FIREBASE INITIALIZATION ---
     const firebaseConfig = {
         apiKey: "AIzaSyAkDjO1Zk_KsqnBhOYdZw8hX6ebcDv2TM8",
         authDomain: "watertracker-7c2d3.firebaseapp.com",
@@ -200,156 +146,143 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. IDENTITY & PERSISTENCE
     let myName = localStorage.getItem('hs_user') || prompt("Identity (Vinod/Cindy):");
     localStorage.setItem('hs_user', myName);
     const partner = myName === 'Vinod' ? 'Cindy' : 'Vinod';
     document.getElementById('display-name').innerText = "Logged in: " + myName;
 
     function getToday() { return new Date().toLocaleDateString().replace(/\//g, '-'); }
-    let chart;
-    let activeReply = null;
 
-    // --- SLEEP & MOOD LOGIC ---
-    function setMood(m, el) {
-        db.ref('users/' + myName + '/mood').set(m);
-        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active-mood'));
-        el.classList.add('active-mood');
+    // --- HOME SYNC (MISS/LOVE COUNTERS) ---
+    function sendSignal(t) {
+        db.ref('stats_ledger/' + myName + '/' + t).push(Date.now());
+        if(navigator.vibrate) navigator.vibrate(100);
     }
-    db.ref('users/' + partner + '/mood').on('value', s => document.getElementById('partner-mood').innerText = partner + " feels: " + (s.val() || '--'));
-
-    function toggleSleep() {
-        const btn = document.getElementById('sleep-btn');
-        const isS = btn.innerText === "GOODNIGHT";
-        db.ref('users/' + myName + '/isSleeping').set(isS);
-        btn.innerText = isS ? "WAKE UP" : "GOODNIGHT";
-    }
-    db.ref('users/' + partner + '/isSleeping').on('value', s => {
-        document.getElementById('partner-sleep-txt').innerText = partner + (s.val() ? " is Sleeping 😴" : " is Awake ☀️");
+    db.ref('stats_ledger/Vinod').on('value', s => { 
+        if(myName === 'Vinod') {
+            document.getElementById('my-miss-count').innerText = s.val()?.miss ? Object.keys(s.val().miss).length : 0; 
+            document.getElementById('my-love-count').innerText = s.val()?.love ? Object.keys(s.val().love).length : 0; 
+        }
     });
-
-    // --- KISS METER VIBRATION ---
-    const km = document.getElementById('kiss-meter');
-    km.addEventListener('pointerdown', () => db.ref('kiss/' + myName).set(true));
-    km.addEventListener('pointerup', () => db.ref('kiss/' + myName).set(false));
-    db.ref('kiss').on('value', s => {
-        const d = s.val() || {};
-        if(d.Vinod && d.Cindy) {
-            km.classList.add('kiss-active'); document.getElementById('kiss-icon').classList.add('heart-pulse');
-            document.getElementById('kiss-text').innerText = "KISSING NOW!";
-            if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        } else {
-            km.classList.remove('kiss-active'); document.getElementById('kiss-icon').classList.remove('heart-pulse');
-            document.getElementById('kiss-text').innerText = d[myName] ? "WAITING..." : "Hold for Shared Kiss";
+    db.ref('stats_ledger/Cindy').on('value', s => { 
+        if(myName === 'Cindy') {
+            document.getElementById('my-miss-count').innerText = s.val()?.miss ? Object.keys(s.val().miss).length : 0; 
+            document.getElementById('my-love-count').innerText = s.val()?.love ? Object.keys(s.val().love).length : 0; 
         }
     });
 
-    // --- STATS SYSTEM (FIXED TOGGLE) ---
-    function updateStats(range, btn) {
-        if(btn) {
-            document.querySelectorAll('#p-stats button').forEach(b => { b.classList.remove('bg-rose-500', 'text-white'); b.classList.add('bg-slate-100'); });
-            btn.classList.add('bg-rose-500', 'text-white');
-        }
-        db.ref('stats_ledger').once('value', s => {
-            const data = s.val() || {};
-            const limits = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
-            const now = Date.now();
-            const count = (u, t) => Object.values(data[u]?.[t] || {}).filter(ts => (now - ts) < limits[range]).length;
-            
-            if(chart) chart.destroy();
-            chart = new Chart(document.getElementById('loveChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Missed You', 'Love Shared'],
-                    datasets: [
-                        { label: 'Vinod', data: [count('Vinod','miss'), count('Vinod','love')], backgroundColor: '#38bdf8' },
-                        { label: 'Cindy', data: [count('Cindy','miss'), count('Cindy','love')], backgroundColor: '#f43f5e' }
-                    ]
-                }
-            });
-        });
-    }
-
-    // --- CHAT WITH REPLIES ---
-    function sendChat() {
-        const t = document.getElementById('chat-in').value; if(!t) return;
-        const ts = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-        db.ref('chat').push({ f: myName, t, ts, reply: activeReply });
-        document.getElementById('chat-in').value = ""; activeReply = null; document.getElementById('reply-tag').classList.add('hidden');
-    }
-    function setReply(t) { activeReply = t; document.getElementById('reply-tag').innerText = "Replying: " + t; document.getElementById('reply-tag').classList.remove('hidden'); }
-    db.ref('chat').limitToLast(15).on('value', s => {
-        const box = document.getElementById('chat-box'); box.innerHTML = "";
-        s.forEach(c => {
-            const m = c.val(); const isMe = m.f === myName;
-            box.innerHTML += `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                <div onclick="setReply('${m.t}')" class="p-3 rounded-2xl max-w-[85%] text-sm ${isMe ? 'bg-rose-500 text-white rounded-tr-none' : 'bg-white border rounded-tl-none shadow-sm'}">
-                    ${m.reply ? `<div class="reply-box">${m.reply}</div>` : ''}${m.t}
-                </div><span class="text-[8px] text-slate-400 mt-1 uppercase font-bold">${m.ts || ''}</span></div>`;
-        });
-        box.scrollTop = box.scrollHeight;
-    });
-
-    // --- HANGMAN HOST SYSTEM ---
-    function setHWord() {
-        const w = document.getElementById('h-word').value.toUpperCase(); if(w.length < 2) return;
+    // --- HANGMAN LOGIC (HOST VS GUESSER) ---
+    function setHangmanWord() {
+        const w = document.getElementById('h-word-input').value.trim().toUpperCase();
+        if(w.length < 2) return;
         db.ref('hangman').set({ word: w, setter: myName, guesses: "", strikes: 0 });
     }
+
     db.ref('hangman').on('value', s => {
         const h = s.val(); const setup = document.getElementById('h-setup'), play = document.getElementById('h-play');
         if(!h) { setup.classList.remove('hidden'); play.classList.add('hidden'); return; }
         setup.classList.add('hidden'); play.classList.remove('hidden');
+        
         let disp = ""; for(let char of h.word) disp += h.guesses.includes(char) ? char + " " : "_ ";
-        document.getElementById('h-display').innerText = disp; document.getElementById('h-strikes').innerText = h.strikes;
-        let kb = ""; "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
-            const used = h.guesses.includes(l);
-            kb += `<button class="letter-btn" ${used || h.setter === myName ? 'disabled' : ''} onclick="guessL('${l}')">${l}</button>`;
-        });
-        document.getElementById('h-keyboard').innerHTML = kb;
-        if(h.strikes >= 8) { alert("Host Won! Word was: " + h.word); db.ref('hangman').remove(); }
-        if(!disp.includes("_")) { alert("Guesser Won!"); db.ref('hangman').remove(); }
+        document.getElementById('h-display').innerText = disp;
+        document.getElementById('h-strikes').innerText = h.strikes;
+        drawHangman(h.strikes);
+
+        if(h.setter !== myName) {
+            let kb = ""; "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
+                const used = h.guesses.includes(l);
+                kb += `<button class="letter-btn" ${used ? 'disabled' : ''} onclick="guessLetter('${l}')">${l}</button>`;
+            });
+            document.getElementById('h-keyboard').innerHTML = kb;
+        } else {
+            document.getElementById('h-keyboard').innerHTML = "<p class='text-xs opacity-50 italic'>Partner is guessing...</p>";
+        }
+
+        if(h.strikes >= 6) { alert("Creator Won! Word was: " + h.word); db.ref('hangman').remove(); }
+        if(!disp.includes("_")) {
+            document.getElementById('winner-name').innerText = "WORD GUESSED!";
+            document.getElementById('win-overlay').style.display='flex';
+            db.ref('users/'+myName+'/coins').transaction(c=>(c||0)+10);
+            db.ref('hangman').remove();
+        }
     });
-    function guessL(l) {
+
+    function guessLetter(l) {
         db.ref('hangman').once('value', s => {
-            let h = s.val(); let newG = h.guesses + l; let newS = h.word.includes(l) ? h.strikes : h.strikes + 1;
+            let h = s.val(); let newG = h.guesses + l; 
+            let newS = h.word.includes(l) ? h.strikes : h.strikes + 1;
             db.ref('hangman').update({ guesses: newG, strikes: newS });
         });
     }
 
-    // --- WATER ---
+    function drawHangman(s) {
+        const c = document.getElementById('hangman-canvas').getContext('2d');
+        c.clearRect(0,0,150,150); c.lineWidth=3; c.strokeStyle="#334155";
+        // Gallows
+        c.beginPath(); c.moveTo(20,130); c.lineTo(130,130); c.moveTo(40,130); c.lineTo(40,20); c.lineTo(100,20); c.lineTo(100,40); c.stroke();
+        if(s>0) { c.beginPath(); c.arc(100,50,10,0,Math.PI*2); c.stroke(); } // Head
+        if(s>1) { c.beginPath(); c.moveTo(100,60); c.lineTo(100,90); c.stroke(); } // Body
+        if(s>2) { c.beginPath(); c.moveTo(100,70); c.lineTo(80,85); c.stroke(); } // L Arm
+        if(s>3) { c.beginPath(); c.moveTo(100,70); c.lineTo(120,85); c.stroke(); } // R Arm
+        if(s>4) { c.beginPath(); c.moveTo(100,90); c.lineTo(80,110); c.stroke(); } // L Leg
+        if(s>5) { c.beginPath(); c.moveTo(100,90); c.lineTo(120,110); c.stroke(); } // R Leg
+    }
+
+    // --- TIC TAC TOE (TURN LOGIC) ---
+    function playTTT(i) {
+        db.ref('ttt').once('value', s => {
+            const g = s.val() || { board: Array(9).fill(""), turn: "Vinod" };
+            if(g.turn !== myName || g.board[i]) return;
+            g.board[i] = (myName === 'Vinod' ? 'X' : 'O'); g.turn = partner;
+            db.ref('ttt').set(g);
+        });
+    }
+    db.ref('ttt').on('value', s => {
+        const g = s.val() || { board: Array(9).fill(""), turn: "Vinod" };
+        g.board.forEach((v, i) => document.querySelectorAll('.ttt-cell')[i].innerText = v || "");
+        document.getElementById('ttt-status').innerText = g.turn === myName ? "Your Turn!" : partner + "'s Turn...";
+    });
+    function resetTTT() { db.ref('ttt').set({ board: Array(9).fill(""), turn: "Vinod" }); }
+
+    // --- WATER & APP CORE ---
     function drinkWater() {
         const amt = parseInt(document.getElementById('drink-amt').value) || 0;
         db.ref('users/' + myName).once('value', s => {
             let d = s.val() || { daily: {}, coins: 0 };
-            let old = d.daily[getToday()] || 0;
-            d.daily[getToday()] = old + amt;
+            let old = d.daily[getToday()] || 0; d.daily[getToday()] = old + amt;
             if(d.daily[getToday()] >= 2000 && old < 2000) d.coins = (d.coins || 0) + 10;
             db.ref('users/' + myName).set(d);
         });
     }
+    function resetWaterToday() { db.ref('users/' + myName + '/daily/' + getToday()).set(0); }
+    db.ref('users/' + myName).on('value', s => {
+        const d = s.val() || {}; const curr = d.daily?.[getToday()] || 0;
+        document.getElementById('current-ml').innerText = curr;
+        document.getElementById('coin-count').innerText = d.coins || 0;
+        document.getElementById('ring').style.background = `conic-gradient(var(--water-blue) ${(curr/2000)*360}deg, #ffebee 0deg)`;
+        document.getElementById('loading').style.display = 'none';
+    });
 
-    // --- NAVIGATION ---
     function showPage(p) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
         document.getElementById('p-' + p).classList.add('active');
-        if(p === 'stats') updateStats('daily');
+        const activeTab = Array.from(document.querySelectorAll('.tab-item')).find(t => t.getAttribute('onclick').includes(p));
+        if(activeTab) activeTab.classList.add('active');
     }
     function showSubGame(g) {
         document.getElementById('game-ttt').classList.add('hidden');
         document.getElementById('game-hangman').classList.add('hidden');
         document.getElementById('game-' + g).classList.remove('hidden');
     }
+    function closeWinOverlay() { document.getElementById('win-overlay').style.display = 'none'; resetTTT(); }
 
-    // Initialize Global State
     db.ref('status/' + myName).onDisconnect().set('offline');
     db.ref('status/' + myName).set('online');
     db.ref('status/' + partner).on('value', s => {
         document.getElementById('partner-status').innerText = s.val() === 'online' ? '● Online' : '● Offline';
         document.getElementById('partner-status').style.color = s.val() === 'online' ? '#4ade80' : '#94a3b8';
     });
-    document.getElementById('loading').style.display = 'none';
-
 </script>
 </body>
 </html>
