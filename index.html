@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CindVin Hub</title>
+    <title>CindVin - Connected</title>
     
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3105/3105807.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,131 +14,110 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root { --romance-pink: #ffafbd; --romance-red: #ff4b2b; --water-blue: #00d2ff; }
+        :root { --romance-pink: #ffafbd; --romance-red: #ff4b2b; --water-blue: #00d2ff; --gold: #f1c40f; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(to bottom, #ffafbd, #ffc3a0); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
+        
         .page { display: none; width: 100%; max-width: 450px; margin: auto; padding: 15px; padding-bottom: 100px; }
         .page.active { display: block !important; animation: fadeIn 0.4s; }
-        .card { background: rgba(255, 255, 255, 0.95); border-radius: 25px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 15px; border: 2px solid white; }
+        .card { background: rgba(255, 255, 255, 0.95); border-radius: 25px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 15px; text-align: center; border: 2px solid white; }
+        
         .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
         .tab-item { border: none; background: none; color: #999; font-size: 0.6rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .tab-item.active { color: var(--romance-red); }
-        .mood-btn.selected { border: 3px solid var(--romance-red); transform: scale(1.1); background: white; }
-        .reply-quote { background: #e2e8f0; border-left: 4px solid var(--romance-red); padding: 6px; border-radius: 6px; font-size: 0.7rem; margin-bottom: 5px; color: #475569; }
+        
+        /* Water UI Elements from your code */
         .circular-progress { width: 160px; height: 160px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--water-blue) 0deg, #ffebee 0deg); transition: 0.5s ease; margin: 15px auto; }
         .inner-circle { width: 130px; height: 130px; background: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; text-align: center; }
-        .kiss-active { background: #fff1f2 !important; border: 2px solid #fb7185 !important; }
-        @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .heart-pulse { animation: heartbeat 0.8s infinite; color: var(--romance-red); }
+        
+        /* Tic Tac Toe */
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .ttt-cell { aspect-ratio: 1; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; border: 1px solid #eee; }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-[9999]">💝 Syncing...</div>
+<div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-[9999]">💝 Syncing Our Love...</div>
 
 <div id="p-home" class="page active">
     <div class="card bg-slate-900 text-white border-none flex justify-between items-center">
-        <div><h2 class="font-bold">CindVin Hub</h2><p id="user-id" class="text-[9px] opacity-60 uppercase"></p></div>
+        <div><h2 class="font-bold">CindVin Hub</h2><p id="user-display" class="text-[9px] opacity-60 uppercase"></p></div>
         <div class="text-right text-xs font-bold" id="partner-status">● Offline</div>
     </div>
 
-    <div id="kiss-meter" class="card py-10 cursor-pointer select-none touch-none text-center">
-        <i id="kiss-icon" class="fas fa-heart text-4xl text-slate-100"></i>
-        <p id="kiss-text" class="text-xs font-bold uppercase mt-3 text-slate-400">Hold for Shared Kiss</p>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3 mb-4">
+    <div class="grid grid-cols-2 gap-3 mb-4 mt-2">
         <button onclick="sendSignal('miss')" class="card p-5 active:scale-95 transition">
             <i class="fas fa-heart-broken text-sky-500 text-2xl mb-1"></i><br>
             <span class="text-[10px] font-bold uppercase text-slate-400">I Miss You</span>
-            <p id="my-miss-count" class="text-xl font-black text-slate-800">0</p>
+            <p id="my-miss-count" class="text-xl font-black">0</p>
         </button>
         <button onclick="sendSignal('love')" class="card p-5 active:scale-95 transition">
             <i class="fas fa-heart text-rose-500 text-2xl mb-1"></i><br>
             <span class="text-[10px] font-bold uppercase text-slate-400">I Love You</span>
-            <p id="my-love-count" class="text-xl font-black text-slate-800">0</p>
+            <p id="my-love-count" class="text-xl font-black">0</p>
         </button>
-    </div>
-
-    <div class="card text-center">
-        <p class="text-[10px] uppercase font-bold text-slate-400 mb-4 tracking-widest">My Current Mood</p>
-        <div id="mood-list" class="flex justify-around text-4xl">
-            <button onclick="setMood('😊', this)" class="mood-btn p-1 rounded-full transition">😊</button>
-            <button onclick="setMood('😢', this)" class="mood-btn p-1 rounded-full transition">😢</button>
-            <button onclick="setMood('❤️', this)" class="mood-btn p-1 rounded-full transition">❤️</button>
-            <button onclick="setMood('😡', this)" class="mood-btn p-1 rounded-full transition">😡</button>
-        </div>
-        <div class="mt-4 pt-4 border-t text-xs font-bold text-rose-500 italic" id="partner-mood">Partner status: --</div>
     </div>
 </div>
 
 <div id="p-water" class="page">
     <div class="card">
         <div class="flex justify-between font-bold text-rose-600 mb-2">
-            <span>🎯 Target: 2000ml</span>
-            <span>🪙 <span id="coin-count">0</span></span>
+            <span>🎯 Target: <span id="display-goal">2000</span>ml</span>
+            <span style="color:#b8860b;">🪙 <span id="coin-count">0</span></span>
         </div>
-        <div class="circular-progress" id="ring">
+        <div class="circular-progress" id="progress">
             <div class="inner-circle">
-                <span id="current-ml" class="text-2xl font-bold text-sky-500">0</span>
-                <span class="text-[8px] text-gray-400 uppercase">ml total</span>
+                <span id="current-ml" style="font-size:1.8rem; font-weight:bold; color:#3498db;">0</span>
+                <span style="color:#777; font-size:0.8rem;">ml total</span>
             </div>
         </div>
-        <input type="number" id="drink-amt" value="250" class="w-full border p-3 rounded-xl mb-2 text-center text-lg font-bold">
-        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-4 rounded-xl">Add Water 💧</button>
-    </div>
-</div>
-
-<div id="p-calories" class="page">
-    <div class="card">
-        <h3 class="text-xs font-black text-rose-500 uppercase mb-4 tracking-widest">Calorie Tracker</h3>
-        <div class="flex gap-2 mb-6">
-            <input type="text" id="f-name" placeholder="What did you eat?" class="flex-grow border p-2 rounded-xl text-sm">
-            <input type="number" id="f-cal" placeholder="kcal" class="w-20 border p-2 rounded-xl text-sm">
-            <button onclick="addCalorieEntry()" class="bg-rose-500 text-white px-4 rounded-xl"><i class="fas fa-plus"></i></button>
-        </div>
-        <div class="grid grid-cols-2 gap-4 h-64 overflow-y-auto">
-            <div id="log-v" class="text-[10px] border-r pr-2"><b>VINOD</b></div>
-            <div id="log-c" class="text-[10px]"><b>CINDY</b></div>
-        </div>
+        <input type="number" id="drink-amount" value="250" class="w-full border p-3 rounded-xl mb-2 text-center text-lg">
+        <button style="background: linear-gradient(to right, #00d2ff, #3a7bd5); width: 100%;" class="text-white font-bold py-3 rounded-xl" onclick="drinkWater()">Drink 💧</button>
+        <button style="background: #fab1a0; width: 100%; margin-top:10px; font-size:0.8rem;" class="text-white py-2 rounded-xl" onclick="resetToday()">Reset Today's Water 🔄</button>
     </div>
 </div>
 
 <div id="p-stats" class="page">
-    <div class="flex justify-between mb-4 bg-white p-1 rounded-2xl border">
-        <button class="flex-1 py-1 text-[9px] font-bold rounded-xl bg-rose-500 text-white" onclick="renderStats()">Live Stats</button>
+    <div class="flex justify-around mb-4 bg-white p-2 rounded-2xl border">
+        <button class="px-4 py-1 text-[10px] font-bold rounded-lg bg-rose-500 text-white" onclick="renderDetailedCharts('daily')">Daily</button>
+        <button class="px-4 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="renderDetailedCharts('weekly')">Weekly</button>
+        <button class="px-4 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="renderDetailedCharts('monthly')">Monthly</button>
     </div>
     <div class="card">
-        <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 text-center">Competition Charts</h3>
-        <canvas id="compChart" height="300"></canvas>
-    </div>
-    <div class="card">
-        <p class="text-[10px] font-bold uppercase text-slate-400 mb-3">Sleep Sync History</p>
-        <div id="sleep-history" class="text-xs space-y-2"></div>
+        <h3 class="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Love Click Comparison</h3>
+        <canvas id="loveChart" height="300"></canvas>
     </div>
 </div>
 
-<div id="p-chat" class="page">
-    <div class="card h-[75vh] flex flex-col p-1 bg-slate-50 border-none shadow-inner">
-        <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-4"></div>
-        <div id="reply-tag" class="hidden bg-slate-200 p-2 text-[10px] rounded-t-xl mx-2 font-bold"></div>
-        <div class="flex gap-2 p-3 bg-white rounded-3xl border shadow-lg">
-            <input type="text" id="chat-in" placeholder="Message..." class="flex-grow p-2 text-sm outline-none">
-            <button onclick="sendChat()" class="bg-rose-500 text-white w-10 h-10 rounded-2xl"><i class="fas fa-paper-plane"></i></button>
+<div id="p-games" class="page">
+    <div class="card text-center">
+        <h3 class="font-bold mb-4 uppercase text-xs">Tic-Tac-Toe</h3>
+        <div class="ttt-grid" id="ttt-board">
+            <div class="ttt-cell" onclick="playTTT(0)"></div>
+            <div class="ttt-cell" onclick="playTTT(1)"></div>
+            <div class="ttt-cell" onclick="playTTT(2)"></div>
+            <div class="ttt-cell" onclick="playTTT(3)"></div>
+            <div class="ttt-cell" onclick="playTTT(4)"></div>
+            <div class="ttt-cell" onclick="playTTT(5)"></div>
+            <div class="ttt-cell" onclick="playTTT(6)"></div>
+            <div class="ttt-cell" onclick="playTTT(7)"></div>
+            <div class="ttt-cell" onclick="playTTT(8)"></div>
         </div>
+        <p id="ttt-status" class="mt-4 text-xs font-bold text-rose-500">Connecting...</p>
+        <button onclick="resetTTT()" class="mt-4 text-[10px] text-slate-400 font-bold uppercase underline">Reset Game</button>
     </div>
 </div>
 
 <div class="tab-bar">
-    <button class="tab-item active" onclick="showPage('home')">🏠<span>HUB</span></button>
-    <button class="tab-item" onclick="showPage('water')">💧<span>WATER</span></button>
-    <button class="tab-item" onclick="showPage('calories')">🥗<span>CALS</span></button>
-    <button class="tab-item" onclick="showPage('chat')">💬<span>CHAT</span></button>
-    <button class="tab-item" onclick="showPage('stats')">📊<span>STATS</span></button>
+    <button class="tab-item active" onclick="showPage('home')">🏠<span>Home</span></button>
+    <button class="tab-item" onclick="showPage('water')">💧<span>Water</span></button>
+    <button class="tab-item" onclick="showPage('stats')">📊<span>Stats</span></button>
+    <button class="tab-item" onclick="showPage('games')">🎮<span>Games</span></button>
 </div>
 
 <script>
-    // --- FIREBASE ---
+    // --- FIREBASE CONFIG (Sync with your database) ---
     const firebaseConfig = {
         apiKey: "AIzaSyAkDjO1Zk_KsqnBhOYdZw8hX6ebcDv2TM8",
         authDomain: "watertracker-7c2d3.firebaseapp.com",
@@ -154,142 +133,124 @@
     let myName = localStorage.getItem('hs_user') || prompt("Identity (Vinod/Cindy):");
     localStorage.setItem('hs_user', myName);
     const partner = myName === 'Vinod' ? 'Cindy' : 'Vinod';
-    document.getElementById('user-id').innerText = "Logged in: " + myName;
+    document.getElementById('user-display').innerText = "Logged in: " + myName;
 
-    let chart;
-    let activeReply = null;
+    let waterStats = { daily: {}, coins: 0, goal: 2000 };
+    let loveChart;
 
-    // --- STATUS ---
-    db.ref('status/' + myName).onDisconnect().set('offline');
-    db.ref('status/' + myName).set('online');
-    db.ref('status/' + partner).on('value', s => {
-        const isO = s.val() === 'online';
-        document.getElementById('partner-status').innerText = isO ? '● Online' : '● Offline';
-        document.getElementById('partner-status').style.color = isO ? '#4ade80' : '#94a3b8';
-    });
-
-    // --- KISS METER ---
-    const km = document.getElementById('kiss-meter');
-    km.addEventListener('pointerdown', () => db.ref('kiss/' + myName).set(true));
-    km.addEventListener('pointerup', () => db.ref('kiss/' + myName).set(false));
-    db.ref('kiss').on('value', s => {
-        const data = s.val() || {};
-        if(data.Vinod && data.Cindy) {
-            km.classList.add('kiss-active');
-            document.getElementById('kiss-icon').classList.add('heart-pulse');
-            document.getElementById('kiss-text').innerText = "KISSING NOW!";
-            if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        } else {
-            km.classList.remove('kiss-active');
-            document.getElementById('kiss-icon').classList.remove('heart-pulse');
-            document.getElementById('kiss-text').innerText = data[myName] ? "WAITING FOR PARTNER..." : "Hold for Shared Kiss";
-        }
-    });
-
-    // --- SIGNALS ---
-    function sendSignal(t) {
-        db.ref('signals/' + myName + '/' + t).push(Date.now());
+    // --- 1. STATISTICS ENGINE ---
+    function sendSignal(type) {
+        const timestamp = Date.now();
+        db.ref('stats_ledger/' + myName + '/' + type).push(timestamp);
         if(navigator.vibrate) navigator.vibrate(100);
     }
-    db.ref('signals/Vinod').on('value', s => { if(myName === 'Vinod') document.getElementById('my-miss-count').innerText = s.val()?.miss ? Object.keys(s.val().miss).length : 0; if(myName === 'Vinod') document.getElementById('my-love-count').innerText = s.val()?.love ? Object.keys(s.val().love).length : 0; });
-    db.ref('signals/Cindy').on('value', s => { if(myName === 'Cindy') document.getElementById('my-miss-count').innerText = s.val()?.miss ? Object.keys(s.val().miss).length : 0; if(myName === 'Cindy') document.getElementById('my-love-count').innerText = s.val()?.love ? Object.keys(s.val().love).length : 0; });
 
-    // --- MOOD ---
-    function setMood(m, el) {
-        db.ref('moods/' + myName).set(m);
-        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-        el.classList.add('selected');
-    }
-    db.ref('moods/' + partner).on('value', s => document.getElementById('partner-mood').innerText = partner + " is " + (s.val() || '😊'));
+    function renderDetailedCharts(filter) {
+        db.ref('stats_ledger').once('value', s => {
+            const data = s.val() || {};
+            const ctx = document.getElementById('loveChart').getContext('2d');
+            
+            const vMiss = countSignal(data['Vinod']?.['miss'], filter);
+            const cMiss = countSignal(data['Cindy']?.['miss'], filter);
+            const vLove = countSignal(data['Vinod']?.['love'], filter);
+            const cLove = countSignal(data['Cindy']?.['love'], filter);
 
-    // --- WATER ---
-    function drinkWater() {
-        const amt = parseInt(document.getElementById('drink-amt').value) || 0;
-        const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        db.ref('users/' + myName + '/daily/' + today).transaction(c => {
-            const old = c || 0;
-            if(old < 2000 && (old+amt) >= 2000) db.ref('users/' + myName + '/coins').transaction(n => (n||0)+10);
-            return old + amt;
+            if(loveChart) loveChart.destroy();
+            loveChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Missed You', 'Love You'],
+                    datasets: [
+                        { label: 'Vinod', data: [vMiss, vLove], backgroundColor: '#38bdf8', borderRadius: 8 },
+                        { label: 'Cindy', data: [cMiss, cLove], backgroundColor: '#f43f5e', borderRadius: 8 }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
         });
     }
-    db.ref('users/' + myName).on('value', s => {
-        const d = s.val() || {};
+
+    function countSignal(entries, filter) {
+        if(!entries) return 0;
+        const now = Date.now();
+        const limits = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
+        return Object.values(entries).filter(ts => (now - ts) < limits[filter]).length;
+    }
+
+    // --- 2. TIC TAC TOE GAME ---
+    function playTTT(i) {
+        db.ref('games/ttt').once('value', s => {
+            const game = s.val() || { board: Array(9).fill(""), turn: "Vinod" };
+            if(game.turn !== myName || game.board[i]) return;
+            game.board[i] = (myName === 'Vinod' ? 'X' : 'O');
+            game.turn = partner;
+            db.ref('games/ttt').set(game);
+        });
+    }
+
+    db.ref('games/ttt').on('value', s => {
+        const game = s.val() || { board: Array(9).fill(""), turn: "Vinod" };
+        const cells = document.querySelectorAll('.ttt-cell');
+        game.board.forEach((val, i) => cells[i].innerText = val || "");
+        document.getElementById('ttt-status').innerText = game.turn === myName ? "Your Turn!" : partner + "'s Turn...";
+    });
+
+    function resetTTT() { db.ref('games/ttt').set({ board: Array(9).fill(""), turn: "Vinod" }); }
+
+    // --- 3. WATER TRACKER (Incorporated from your code) ---
+    function drinkWater() {
+        const amt = parseInt(document.getElementById('drink-amount').value) || 0;
         const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        const curr = d.daily?.[today] || 0;
+        const old = waterStats.daily[today] || 0;
+        waterStats.daily[today] = old + amt;
+
+        if (waterStats.daily[today] >= waterStats.goal && old < waterStats.goal) {
+            waterStats.coins = (waterStats.coins || 0) + 10;
+        }
+        db.ref('users/' + myName).set(waterStats);
+    }
+
+    function resetToday() {
+        const today = new Date().toLocaleDateString().replace(/\//g, '-');
+        waterStats.daily[today] = 0;
+        db.ref('users/' + myName).set(waterStats);
+    }
+
+    db.ref('users/' + myName).on('value', snap => {
+        if(snap.exists()) waterStats = snap.val();
+        const today = new Date().toLocaleDateString().replace(/\//g, '-');
+        const curr = waterStats.daily?.[today] || 0;
         document.getElementById('current-ml').innerText = curr;
-        document.getElementById('coin-count').innerText = d.coins || 0;
-        document.getElementById('ring').style.background = `conic-gradient(#00d2ff ${(curr/2000)*360}deg, #ffebee 0deg)`;
+        document.getElementById('coin-count').innerText = waterStats.coins || 0;
+        const p = Math.min((curr / waterStats.goal) * 360, 360);
+        document.getElementById('progress').style.background = `conic-gradient(var(--water-blue) ${p}deg, #ffebee 0deg)`;
         document.getElementById('loading').style.display = 'none';
     });
 
-    // --- CALORIES ---
-    function addCalorieEntry() {
-        const n = document.getElementById('f-name').value;
-        const c = document.getElementById('f-cal').value;
-        if(n && c) db.ref('calories/' + myName).push({n, c, ts: Date.now()});
-        document.getElementById('f-name').value = ""; document.getElementById('f-cal').value = "";
-    }
-    db.ref('calories').on('value', s => {
-        const data = s.val() || {};
-        ['Vinod', 'Cindy'].forEach(u => {
-            const l = document.getElementById('log-' + u[0].toLowerCase());
-            l.innerHTML = `<b>${u} LOG</b><br>`;
-            Object.values(data[u] || {}).forEach(f => {
-                l.innerHTML += `<div class="flex justify-between border-b py-1"><span>${f.n}</span><span>${f.c}kcal</span></div>`;
-            });
-        });
-    });
-
-    // --- CHAT ---
-    function sendChat() {
-        const t = document.getElementById('chat-in').value;
-        if(!t) return;
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        db.ref('chat').push({ f: myName, t, time, reply: activeReply });
-        document.getElementById('chat-in').value = "";
-        activeReply = null; document.getElementById('reply-tag').classList.add('hidden');
-    }
-    function setReply(t) { activeReply = t; document.getElementById('reply-tag').innerText = "Replying: " + t; document.getElementById('reply-tag').classList.remove('hidden'); }
-    db.ref('chat').limitToLast(12).on('value', s => {
-        const box = document.getElementById('chat-box'); box.innerHTML = '';
-        s.forEach(c => {
-            const m = c.val(); const isMe = m.f === myName;
-            box.innerHTML += `
-                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                    <div onclick="setReply('${m.t}')" class="p-3 rounded-2xl max-w-[85%] text-sm ${isMe ? 'bg-rose-500 text-white rounded-tr-none' : 'bg-white border rounded-tl-none'}">
-                        ${m.reply ? `<div class="reply-quote">${m.reply}</div>` : ''} ${m.t}
-                    </div>
-                    <span class="text-[8px] text-slate-400 mt-1 uppercase font-bold">${m.time || ''}</span>
-                </div>`;
-        });
-        box.scrollTop = box.scrollHeight;
-    });
-
-    // --- STATS ---
-    function renderStats() {
-        const ctx = document.getElementById('compChart').getContext('2d');
-        if(chart) chart.destroy();
-        chart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Water (ml)', 'Mood', 'Sleep (hr)'],
-                datasets: [
-                    { label: 'Vinod', data: [1600, 85, 7], backgroundColor: '#38bdf8', borderRadius: 8 },
-                    { label: 'Cindy', data: [1900, 90, 8], backgroundColor: '#f43f5e', borderRadius: 8 }
-                ]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-        });
-    }
-
+    // --- NAV ---
     function showPage(p) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
         document.getElementById('p-' + p).classList.add('active');
         const activeTab = Array.from(document.querySelectorAll('.tab-item')).find(t => t.getAttribute('onclick').includes(p));
         if(activeTab) activeTab.classList.add('active');
-        if(p === 'stats') renderStats();
+        if(p === 'stats') renderDetailedCharts('daily');
     }
+
+    // Presence
+    db.ref('status/' + myName).onDisconnect().set('offline');
+    db.ref('status/' + myName).set('online');
+    db.ref('status/' + partner).on('value', s => {
+        const isOnline = s.val() === 'online';
+        document.getElementById('partner-status').innerText = isOnline ? '● Online' : '● Offline';
+        document.getElementById('partner-status').style.color = isOnline ? '#4ade80' : '#94a3b8';
+    });
+
+    // Home counts
+    db.ref('stats_ledger/Vinod/miss').on('value', s => { if(myName === 'Vinod') document.getElementById('my-miss-count').innerText = s.numChildren(); });
+    db.ref('stats_ledger/Vinod/love').on('value', s => { if(myName === 'Vinod') document.getElementById('my-love-count').innerText = s.numChildren(); });
+    db.ref('stats_ledger/Cindy/miss').on('value', s => { if(myName === 'Cindy') document.getElementById('my-miss-count').innerText = s.numChildren(); });
+    db.ref('stats_ledger/Cindy/love').on('value', s => { if(myName === 'Cindy') document.getElementById('my-love-count').innerText = s.numChildren(); });
 </script>
 </body>
 </html>
