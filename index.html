@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HealthSync Pro</title>
+    <title>CindVin - Connected</title>
     
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3105/3105807.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -14,153 +12,154 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root { --romance-pink: #ffafbd; --romance-red: #ff4b2b; --water-blue: #00d2ff; --gold: #f1c40f; --accent: #0284c7; }
+        :root { --romance-pink: #ffafbd; --romance-red: #ff4b2b; --water-blue: #00d2ff; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(to bottom, #ffafbd, #ffc3a0); margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
-        .page { display: none; width: 100%; max-width: 450px; margin: auto; padding: 15px; padding-bottom: 90px; }
-        .page.active { display: block; animation: fadeIn 0.4s; }
-        .card { background: rgba(255, 255, 255, 0.95); border-radius: 25px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 15px; text-align: center; border: 2px solid white; }
         
-        /* Tab Bar */
+        .page { display: none; width: 100%; max-width: 450px; margin: auto; padding: 15px; padding-bottom: 100px; }
+        .page.active { display: block !important; animation: fadeIn 0.4s; }
+        .card { background: rgba(255, 255, 255, 0.95); border-radius: 25px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); margin-bottom: 15px; border: 2px solid white; }
+        
         .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; border-top-left-radius: 20px; border-top-right-radius: 20px; }
-        .tab-item { border: none; background: none; color: #999; font-size: 0.65rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .tab-item { border: none; background: none; color: #999; font-size: 0.6rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .tab-item.active { color: var(--romance-red); }
-
-        /* Kiss Meter */
-        .kiss-active { background: #fff1f2 !important; border: 2px solid #fb7185 !important; }
-        @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .heart-pulse { animation: heartbeat 0.8s infinite; color: var(--romance-red); }
-
-        /* Chat Reply */
-        .reply-box { background: rgba(0,0,0,0.05); border-left: 4px solid var(--romance-red); padding: 5px 10px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 5px; }
         
-        /* Water UI Elements */
-        .circular-progress { width: 160px; height: 160px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--water-blue) 0deg, #ffebee 0deg); transition: 0.5s ease; margin: 15px auto; }
-        .inner-circle { width: 130px; height: 130px; background: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; }
+        .mood-btn.selected { border: 3px solid var(--romance-red); background: white; transform: scale(1.1); box-shadow: 0 0 15px rgba(255, 75, 43, 0.4); }
+        .sub-page { display: none; }
+        .sub-page.active { display: block !important; }
+        
+        /* Game Styles */
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .ttt-cell { aspect-ratio: 1; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .ttt-cell:active { background: #e2e8f0; }
+        
+        #win-overlay { position: fixed; inset: 0; background: rgba(255, 75, 43, 0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 5000; color: white; text-align: center; }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-[9999]">💝 Syncing Our Connection...</div>
+<div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-[9999]">💝 Syncing...</div>
+
+<div id="win-overlay">
+    <i class="fas fa-trophy text-6xl mb-4"></i>
+    <h1 class="text-4xl font-black mb-2" id="winner-name">VINOD WINS!</h1>
+    <p class="text-lg opacity-80 mb-6">A new wish token has been added! 💎</p>
+    <button onclick="resetTTT(); document.getElementById('win-overlay').style.display='none'" class="bg-white text-rose-500 px-8 py-3 rounded-full font-bold shadow-lg">New Match</button>
+</div>
 
 <div id="p-home" class="page active">
-    <div class="card bg-slate-900 text-white border-none">
-        <div class="flex justify-between items-center mb-2">
-            <h2 class="font-bold">HealthSync Pro</h2>
-            <div class="text-right">
-                <span id="partner-status-name" class="text-[10px] uppercase opacity-60 block">Partner Status</span>
-                <span id="partner-online-dot" class="text-xs font-bold text-slate-400 uppercase">● Offline</span>
+    <div class="card bg-slate-900 text-white border-none text-center">
+        <h2 class="font-bold">CindVin Hub</h2>
+        <span id="partner-online-dot" class="text-xs font-bold text-slate-400 uppercase">● Partner Offline</span>
+    </div>
+
+    <div class="card text-center">
+        <h3 class="text-xs font-bold uppercase mb-4 text-slate-400">Sleep Ritual</h3>
+        <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl">
+            <div class="text-left">
+                <p id="my-sleep-txt" class="text-xs font-bold text-slate-800">I'm Awake ☀️</p>
+                <p id="partner-sleep-txt" class="text-[10px] text-slate-400 italic">Partner is Awake</p>
             </div>
+            <button id="sleep-toggle-btn" onclick="toggleSleep()" class="bg-slate-800 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg">Goodnight</button>
         </div>
-    </div>
-
-    <div id="kiss-meter" class="card py-8 cursor-pointer select-none touch-none transition-all duration-300">
-        <i id="kiss-icon" class="fas fa-heart text-4xl text-slate-200"></i>
-        <p id="kiss-text" class="text-xs font-bold uppercase mt-3 text-slate-400 tracking-widest">Hold for Shared Kiss</p>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3 mb-4">
-        <button onclick="sendSignal('miss')" class="card p-5 active:scale-95 transition">
-            <i class="fas fa-heart-broken text-sky-500 text-2xl mb-1"></i><br>
-            <span class="text-[10px] font-bold uppercase text-slate-400">I Miss You</span>
-            <p id="my-miss-count" class="text-xl font-black">0</p>
-        </button>
-        <button onclick="sendSignal('love')" class="card p-5 active:scale-95 transition">
-            <i class="fas fa-heart text-rose-500 text-2xl mb-1"></i><br>
-            <span class="text-[10px] font-bold uppercase text-slate-400">I Love You</span>
-            <p id="my-love-count" class="text-xl font-black">0</p>
-        </button>
     </div>
 
     <div class="card">
-        <p class="text-[10px] uppercase font-bold text-slate-400 mb-4">Set My Mood</p>
-        <div class="flex justify-around text-3xl">
-            <button onclick="setMood('😊')" class="hover:scale-110">😊</button>
-            <button onclick="setMood('😢')" class="hover:scale-110">😢</button>
-            <button onclick="setMood('❤️')" class="hover:scale-110">❤️</button>
-            <button onclick="setMood('😡')" class="hover:scale-110">😡</button>
-            <button onclick="setMood('😭')" class="hover:scale-110">😭</button>
+        <p class="text-[10px] uppercase font-bold text-slate-400 mb-4">My Current Mood</p>
+        <div class="flex justify-around text-4xl" id="mood-options">
+            <button onclick="setMood('😊', this)" class="mood-btn p-2 rounded-full transition">😊</button>
+            <button onclick="setMood('😢', this)" class="mood-btn p-2 rounded-full transition">😢</button>
+            <button onclick="setMood('❤️', this)" class="mood-btn p-2 rounded-full transition">❤️</button>
+            <button onclick="setMood('😡', this)" class="mood-btn p-2 rounded-full transition">😡</button>
         </div>
-        <div class="mt-4 pt-4 border-t border-slate-100">
-            <p id="partner-mood-display" class="text-xs font-bold text-slate-600">Partner is feeling: --</p>
+        <div class="mt-4 pt-4 border-t border-slate-100 text-center">
+            <p id="partner-mood-display" class="text-xs font-bold text-rose-500 italic">Cindy feels: --</p>
         </div>
     </div>
 </div>
 
 <div id="p-water" class="page">
-    <div id="love-overlay" class="fixed inset-0 bg-[#ff4b2b] bg-opacity-95 hidden flex-col items-center justify-center text-white z-[2000]">
-        <div style="font-size:100px; animation: heartbeat 0.8s infinite alternate;">❤️</div>
-        <h1 style="font-size: 3rem;">I Love You!</h1>
-        <p>Target reached! 😘</p>
-        <button class="bg-white text-[#ff4b2b] px-8 py-3 rounded-full mt-5 font-bold" onclick="document.getElementById('love-overlay').style.display='none'">I Love You Too ❤️</button>
+    <div class="flex justify-around mb-4 bg-white/50 p-2 rounded-2xl">
+        <button class="text-[10px] font-bold uppercase text-slate-600" onclick="showWaterSub('main')">Track</button>
+        <button class="text-[10px] font-bold uppercase text-slate-600" onclick="showWaterSub('shop')">Shop</button>
+        <button class="text-[10px] font-bold uppercase text-slate-600" onclick="showWaterSub('history')">History</button>
     </div>
-    <div class="card">
-        <div class="flex justify-between font-bold text-rose-600 mb-4">
-            <span>🎯 Target: <span id="display-goal">2000</span>ml</span>
-            <span style="color:#b8860b;">🪙 <span id="coin-count">0</span></span>
-        </div>
-        <div class="circular-progress" id="progress-circle">
-            <div class="inner-circle">
-                <span id="current-ml" class="text-2xl font-bold text-sky-500">0</span>
-                <span class="text-[10px] text-gray-500 uppercase">ml total</span>
-            </div>
-        </div>
-        <input type="number" id="drink-amount" value="250" class="w-full border p-3 rounded-xl mb-2 text-center">
-        <button onclick="drinkWater()" class="w-full bg-gradient-to-r from-cyan-400 to-blue-500 text-white font-bold py-3 rounded-xl">Drink 💧</button>
-        <button onclick="resetToday()" class="w-full bg-rose-200 text-rose-700 text-xs mt-2 py-2 rounded-xl">Reset Today 🔄</button>
-    </div>
-</div>
 
-<div id="p-calories" class="page">
-    <div class="card">
-        <h3 class="font-bold text-rose-600 mb-4">Nutrient Tracker</h3>
-        <div class="grid grid-cols-3 gap-2 mb-6">
-            <div class="bg-slate-50 p-2 rounded-xl"><p class="text-[10px] uppercase opacity-50">Goal</p><p class="font-bold">2000</p></div>
-            <div class="bg-rose-50 p-2 rounded-xl"><p class="text-[10px] uppercase text-rose-400">Food</p><p id="cal-consumed" class="font-bold">0</p></div>
-            <div class="bg-green-50 p-2 rounded-xl"><p class="text-[10px] uppercase text-green-400">Left</p><p id="cal-left" class="font-bold">2000</p></div>
-        </div>
-        <div class="flex gap-2">
-            <input type="text" id="food-name" placeholder="Food name" class="flex-1 border p-2 rounded-lg text-sm">
-            <input type="number" id="food-cal" placeholder="Kcal" class="w-20 border p-2 rounded-lg text-sm">
-            <button onclick="addFood()" class="bg-rose-500 text-white px-4 rounded-lg"><i class="fas fa-plus"></i></button>
-        </div>
-        <div class="mt-6 grid grid-cols-2 gap-4 text-left">
-            <div><p class="text-[10px] font-bold border-b pb-1 mb-2 uppercase">Vinod's Day</p><div id="food-list-vinod" class="text-[10px] space-y-1 h-32 overflow-y-auto"></div></div>
-            <div><p class="text-[10px] font-bold border-b pb-1 mb-2 uppercase">Cindy's Day</p><div id="food-list-cindy" class="text-[10px] space-y-1 h-32 overflow-y-auto"></div></div>
+    <div id="water-main" class="sub-page active">
+        <div class="card">
+            <div class="flex justify-between font-bold text-sky-600 mb-4">
+                <span>🎯 Target: 2000ml</span>
+                <span>🪙 <span id="coin-count">0</span></span>
+            </div>
+            <div class="w-40 h-40 rounded-full border-8 border-sky-100 mx-auto mb-6 flex items-center justify-center bg-white shadow-inner">
+                <div class="text-center">
+                    <span id="current-ml" class="text-3xl font-black text-sky-500">0</span>
+                    <p class="text-[8px] text-slate-400 uppercase font-bold">Total ml</p>
+                </div>
+            </div>
+            <input type="number" id="drink-amount" value="250" class="w-full border p-4 rounded-2xl mb-3 text-center text-lg font-bold outline-none">
+            <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-4 rounded-2xl shadow-xl active:scale-95 transition">Add Hydration 💧</button>
         </div>
     </div>
+    <div id="water-shop" class="sub-page"><div class="card"><h3>🎁 Wish Shop</h3><p class="text-xs text-slate-400 mt-2">Trade coins for Cindy's wishes.</p></div></div>
+    <div id="water-history" class="sub-page"><div class="card"><h3>📜 History</h3><div id="water-history-list" class="text-xs space-y-2 mt-4"></div></div></div>
 </div>
 
 <div id="p-stats" class="page">
-    <div class="flex justify-between mb-4 bg-white p-2 rounded-2xl shadow-sm border">
-        <button class="px-3 py-1 text-[10px] font-bold rounded-lg bg-rose-500 text-white" onclick="renderDetailedStats('daily')">Daily</button>
-        <button class="px-3 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="renderDetailedStats('weekly')">Weekly</button>
-        <button class="px-3 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="renderDetailedStats('monthly')">Monthly</button>
+    <div class="flex justify-center gap-2 mb-4">
+        <button class="px-4 py-2 bg-white rounded-xl text-[10px] font-bold shadow-sm" onclick="renderCompStats('daily')">DAY</button>
+        <button class="px-4 py-2 bg-white rounded-xl text-[10px] font-bold shadow-sm" onclick="renderCompStats('weekly')">WEEK</button>
+        <button class="px-4 py-2 bg-white rounded-xl text-[10px] font-bold shadow-sm" onclick="renderCompStats('monthly')">MONTH</button>
     </div>
-    <div id="stats-area" class="space-y-4"></div>
+    <div class="card">
+        <h3 class="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest text-center">🏆 The Competition</h3>
+        <canvas id="compChart" height="300"></canvas>
+    </div>
+</div>
+
+<div id="p-games" class="page">
+    <div id="game-ttt" class="card text-center">
+        <h3 class="font-bold mb-4 uppercase text-xs tracking-widest text-slate-400">Tic-Tac-Toe</h3>
+        <div class="ttt-grid" id="ttt-board">
+            <div class="ttt-cell" onclick="makeTTTMove(0)"></div>
+            <div class="ttt-cell" onclick="makeTTTMove(1)"></div>
+            <div class="ttt-cell" onclick="makeTTTMove(2)"></div>
+            <div class="ttt-cell" onclick="makeTTTMove(3)"></div>
+            <div class="ttt-cell" onclick="makeTTTMove(4)"></div>
+            <div class="ttt-cell" onclick="makeTTTMove(5)"></div>
+            <div class="ttt-cell" onclick="makeTTTMove(6)"></div>
+            <div class="ttt-cell" onclick="makeTTTMove(7)"></div>
+            <div class="ttt-cell" onclick="makeTTTMove(8)"></div>
+        </div>
+        <div class="flex justify-between items-center mt-6">
+            <span id="ttt-status" class="text-xs font-bold text-rose-500">Wait...</span>
+            <span class="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-[10px] font-bold">WISHES: <span id="game-wishes">0</span></span>
+        </div>
+        <button onclick="resetTTT()" class="mt-4 text-[10px] text-slate-400 uppercase font-bold tracking-widest underline">Reset Board</button>
+    </div>
 </div>
 
 <div id="p-chat" class="page">
-    <div class="card h-[70vh] flex flex-col p-2">
-        <div id="chat-box" class="flex-grow overflow-y-auto space-y-3 p-2"></div>
-        <div id="reply-preview" class="hidden reply-box mx-2"></div>
-        <div class="flex gap-2 p-2 border-t">
-            <input type="text" id="chat-input" placeholder="Message..." class="flex-1 p-2 text-sm outline-none">
-            <button onclick="sendMessage()" class="bg-rose-500 text-white px-4 rounded-xl"><i class="fas fa-paper-plane"></i></button>
+    <div class="card h-[72vh] flex flex-col p-1 bg-slate-50 border-none shadow-inner">
+        <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-4"></div>
+        <div class="flex gap-2 p-3 bg-white rounded-3xl border shadow-lg mt-2">
+            <input type="text" id="chat-input" placeholder="Type a message..." class="flex-1 p-2 text-sm outline-none">
+            <button onclick="sendMessage()" class="bg-rose-500 text-white w-10 h-10 rounded-2xl shadow-lg"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 </div>
 
 <div class="tab-bar">
-    <button class="tab-item active" onclick="showPage('home')">🏠<span>Home</span></button>
-    <button class="tab-item" onclick="showPage('water')">💧<span>Water</span></button>
-    <button class="tab-item" onclick="showPage('calories')">🥗<span>Calories</span></button>
-    <button class="tab-item" onclick="showPage('chat')">💬<span>Chat</span></button>
-    <button class="tab-item" onclick="showPage('stats')">📊<span>Stats</span></button>
+    <button class="tab-item active" onclick="showPage('home')">🏠<span>HUB</span></button>
+    <button class="tab-item" onclick="showPage('water')">💧<span>WATER</span></button>
+    <button class="tab-item" onclick="showPage('chat')">💬<span>CHAT</span></button>
+    <button class="tab-item" onclick="showPage('stats')">📊<span>STATS</span></button>
+    <button class="tab-item" onclick="showPage('games')">🎮<span>PLAY</span></button>
 </div>
 
 <script>
-    // --- FIREBASE CONFIG ---
+    // --- CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyAkDjO1Zk_KsqnBhOYdZw8hX6ebcDv2TM8",
         authDomain: "watertracker-7c2d3.firebaseapp.com",
@@ -173,197 +172,132 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let myName = localStorage.getItem('hs_user') || prompt("Enter Name (Vinod/Cindy):");
+    let myName = localStorage.getItem('hs_user') || prompt("Identity (Vinod/Cindy):");
     localStorage.setItem('hs_user', myName);
     const partner = myName === 'Vinod' ? 'Cindy' : 'Vinod';
-    
-    let stats = { daily: {}, coins: 0, goal: 2000, streak: 0, lastCheck: "" };
-    let replyObj = null;
+    let chart;
 
-    // --- 1. PARTNER STATUS & PRESENCE ---
-    const statusRef = db.ref('status/' + myName);
-    db.ref('.info/connected').on('value', snap => {
-        if (snap.val()) statusRef.onDisconnect().set('offline').then(() => statusRef.set('online'));
-    });
-    db.ref('status/' + partner).on('value', s => {
-        const isOnline = s.val() === 'online';
-        document.getElementById('partner-online-dot').innerText = isOnline ? '● Online' : '● Offline';
-        document.getElementById('partner-online-dot').className = isOnline ? 'text-xs font-bold text-green-400 uppercase' : 'text-xs font-bold text-slate-400 uppercase';
-    });
-
-    // --- 2. KISS METER LOGIC ---
-    const kissMeter = document.getElementById('kiss-meter');
-    kissMeter.addEventListener('pointerdown', () => db.ref('kiss/' + myName).set(true));
-    kissMeter.addEventListener('pointerup', () => db.ref('kiss/' + myName).set(false));
-    kissMeter.addEventListener('pointerleave', () => db.ref('kiss/' + myName).set(false));
-
-    db.ref('kiss').on('value', s => {
-        const k = s.val() || {};
-        const both = k.Vinod && k.Cindy;
-        if (both) {
-            kissMeter.classList.add('kiss-active');
-            document.getElementById('kiss-icon').classList.add('heart-pulse');
-            document.getElementById('kiss-text').innerText = "KISSING IN REAL-TIME!";
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        } else {
-            kissMeter.classList.remove('kiss-active');
-            document.getElementById('kiss-icon').classList.remove('heart-pulse');
-            document.getElementById('kiss-text').innerText = k[myName] ? "WAITING FOR " + partner : "Hold for Shared Kiss";
-            document.getElementById('kiss-icon').style.color = k[myName] ? "#fb7185" : "#e2e8f0";
-        }
-    });
-
-    // --- 3. MOOD SETTING ---
-    function setMood(emoji) { db.ref('moods/' + myName).set(emoji); }
-    db.ref('moods/' + partner).on('value', s => {
-        document.getElementById('partner-mood-display').innerText = partner + " is feeling: " + (s.val() || "😊");
-    });
-
-    // --- 4. WATER LOGIC (YOUR ORIGINAL) ---
-    db.ref('users/' + myName).on('value', (snap) => {
-        if(snap.exists()) { stats = snap.val(); }
-        document.getElementById('loading').style.display = 'none';
-        updateWaterUI();
-    });
-
-    function drinkWater() {
-        const amt = parseInt(document.getElementById('drink-amount').value) || 0;
-        const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        stats.daily[today] = (stats.daily[today] || 0) + amt;
-        if (stats.daily[today] >= stats.goal && (stats.daily[today] - amt) < stats.goal) {
-            stats.coins = (stats.coins || 0) + 10;
-            document.getElementById('love-overlay').style.display = 'flex';
-        }
-        db.ref('users/' + myName).set(stats);
-        db.ref('stats_ledger/' + myName + '/water').push({amt, ts: Date.now()});
-    }
-
-    function updateWaterUI() {
-        const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        const curr = stats.daily[today] || 0;
-        document.getElementById('current-ml').innerText = curr;
-        document.getElementById('coin-count').innerText = stats.coins || 0;
-        const p = Math.min((curr / stats.goal) * 360, 360);
-        document.getElementById('progress-circle').style.background = `conic-gradient(var(--water-blue) ${p}deg, #ffebee 0deg)`;
-    }
-
-    // --- 5. CALORIE TRACKER (FATSECRET STYLE) ---
-    function addFood() {
-        const name = document.getElementById('food-name').value;
-        const cal = parseInt(document.getElementById('food-cal').value);
-        if(!name || !cal) return;
-        const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        db.ref('calories/' + today + '/' + myName).push({name, cal, ts: Date.now()});
-        document.getElementById('food-name').value = '';
-        document.getElementById('food-cal').value = '';
-    }
-
-    db.ref('calories').on('value', s => {
-        const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        const data = s.val()?.[today] || {};
-        ['Vinod', 'Cindy'].forEach(user => {
-            let total = 0;
-            let html = '';
-            const entries = data[user] || {};
-            Object.values(entries).forEach(e => {
-                total += e.cal;
-                html += `<div class="flex justify-between border-b py-1"><span>${e.name}</span><span>${e.cal}</span></div>`;
-            });
-            document.getElementById('food-list-' + user.toLowerCase()).innerHTML = html;
-            if(user === myName) {
-                document.getElementById('cal-consumed').innerText = total;
-                document.getElementById('cal-left').innerText = 2000 - total;
-            }
-        });
-    });
-
-    // --- 6. CHAT WITH REPLIES ---
-    function sendMessage() {
-        const t = document.getElementById('chat-input').value;
-        if(!t) return;
-        db.ref('chat').push({ f: myName, t: t, reply: replyObj, ts: Date.now() });
-        document.getElementById('chat-input').value = "";
-        cancelReply();
-    }
-
-    function setReply(text, sender) {
-        replyObj = { text, sender };
-        document.getElementById('reply-preview').innerHTML = `<small>Replying to ${sender}:</small><br>${text}`;
-        document.getElementById('reply-preview').classList.remove('hidden');
-    }
-
-    function cancelReply() { replyObj = null; document.getElementById('reply-preview').classList.add('hidden'); }
-
-    db.ref('chat').limitToLast(15).on('value', s => {
-        const box = document.getElementById('chat-box');
-        box.innerHTML = '';
-        s.forEach(c => {
-            const m = c.val();
-            const isMe = m.f === myName;
-            const rHtml = m.reply ? `<div class="bg-black/5 p-1 rounded text-[10px] italic">@${m.reply.sender}: ${m.reply.text}</div>` : '';
-            box.innerHTML += `
-                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                    <div onclick="setReply('${m.t}', '${m.f}')" class="p-3 rounded-2xl max-w-[80%] text-sm ${isMe ? 'bg-rose-500 text-white rounded-tr-none' : 'bg-white border rounded-tl-none'}">
-                        ${rHtml}${m.t}
-                    </div>
-                </div>`;
-        });
-        box.scrollTop = box.scrollHeight;
-    });
-
-    // --- 7. DETAILED STATS ---
-    function sendSignal(type) {
-        db.ref('stats_ledger/' + myName + '/' + type).push(Date.now());
-    }
-
-    function renderDetailedStats(filter) {
-        db.ref('stats_ledger').once('value', s => {
-            const data = s.val() || {};
-            const types = ['miss', 'love', 'water'];
-            let html = '';
-            types.forEach(type => {
-                const vCount = countData(data['Vinod']?.[type], filter);
-                const cCount = countData(data['Cindy']?.[type], filter);
-                html += `<div class="card p-3">
-                    <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">${type} Count (${filter})</p>
-                    <div class="flex justify-between items-center px-4">
-                        <div class="text-sky-500"><b>Vinod</b><br><span class="text-xl">${vCount}</span></div>
-                        <div class="text-rose-500"><b>Cindy</b><br><span class="text-xl">${cCount}</span></div>
-                    </div>
-                </div>`;
-            });
-            document.getElementById('stats-area').innerHTML = html;
-        });
-    }
-
-    function countData(entries, filter) {
-        if(!entries) return 0;
-        const now = Date.now();
-        const limits = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
-        let count = 0;
-        Object.values(entries).forEach(val => {
-            const ts = typeof val === 'object' ? val.ts : val;
-            if(now - ts < limits[filter]) {
-                if(typeof val === 'object' && val.amt) count += val.amt;
-                else count++;
-            }
-        });
-        return count;
-    }
-
-    // --- 8. NAV ---
+    // --- NAVIGATION ---
     function showPage(p) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
         document.getElementById('p-' + p).classList.add('active');
         const activeTab = Array.from(document.querySelectorAll('.tab-item')).find(t => t.getAttribute('onclick').includes(p));
         if(activeTab) activeTab.classList.add('active');
-        if(p === 'stats') renderDetailedStats('daily');
+        if(p === 'stats') renderCompStats('daily');
     }
 
-    // Identify user and partner stats in real-time
-    db.ref('stats_ledger/' + myName + '/miss').on('value', s => { document.getElementById('my-miss-count').innerText = s.numChildren(); });
-    db.ref('stats_ledger/' + myName + '/love').on('value', s => { document.getElementById('my-love-count').innerText = s.numChildren(); });
+    // --- MOOD & SLEEP ---
+    function setMood(emoji, el) {
+        db.ref('moods/' + myName).set(emoji);
+        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+    db.ref('moods/' + partner).on('value', s => {
+        document.getElementById('partner-mood-display').innerText = partner + " feels: " + (s.val() || "😊");
+    });
+
+    function toggleSleep() {
+        const btn = document.getElementById('sleep-toggle-btn');
+        const isSleeping = btn.innerText === "Goodnight";
+        db.ref('users/' + myName + '/sleep').set({ isSleeping, ts: Date.now() });
+        btn.innerText = isSleeping ? "Wake Up" : "Goodnight";
+        document.getElementById('my-sleep-txt').innerText = isSleeping ? "Sleeping... 😴" : "I'm Awake ☀️";
+    }
+    db.ref('users/' + partner + '/sleep').on('value', s => {
+        const val = s.val() || { isSleeping: false };
+        document.getElementById('partner-sleep-txt').innerText = partner + " is " + (val.isSleeping ? "Sleeping 😴" : "Awake ☀️");
+    });
+
+    // --- WATER LOGIC ---
+    function showWaterSub(sub) {
+        document.querySelectorAll('#p-water .sub-page').forEach(sp => sp.classList.remove('active'));
+        document.getElementById('water-' + sub).classList.add('active');
+    }
+    function drinkWater() {
+        const amt = parseInt(document.getElementById('drink-amount').value) || 0;
+        const today = new Date().toLocaleDateString().replace(/\//g, '-');
+        db.ref('users/' + myName + '/daily/' + today).transaction(curr => (curr || 0) + amt);
+    }
+    db.ref('users/' + myName).on('value', s => {
+        const data = s.val() || {};
+        const today = new Date().toLocaleDateString().replace(/\//g, '-');
+        document.getElementById('current-ml').innerText = data.daily?.[today] || 0;
+        document.getElementById('coin-count').innerText = data.total_coins || 0;
+        document.getElementById('game-wishes').innerText = data.wishes || 0;
+        document.getElementById('loading').style.display = 'none';
+    });
+
+    // --- CHAT ---
+    function sendMessage() {
+        const t = document.getElementById('chat-input').value;
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if(t) db.ref('chat').push({ f: myName, t: t, time: time });
+        document.getElementById('chat-input').value = "";
+    }
+    db.ref('chat').limitToLast(10).on('value', s => {
+        const box = document.getElementById('chat-box');
+        box.innerHTML = '';
+        s.forEach(c => {
+            const m = c.val();
+            const isMe = m.f === myName;
+            box.innerHTML += `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                <div class="p-4 rounded-3xl max-w-[85%] text-sm ${isMe ? 'bg-rose-500 text-white rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none border shadow-sm'}">${m.t}</div>
+                <span class="text-[9px] text-slate-400 mt-1 uppercase font-bold tracking-widest">${m.time}</span>
+            </div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+    });
+
+    // --- TIC TAC TOE WITH WIN POPUP ---
+    const winConditions = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    function makeTTTMove(i) {
+        db.ref('games/ttt').once('value', s => {
+            const data = s.val() || { board: Array(9).fill(""), turn: "Vinod" };
+            if(data.turn !== myName || data.board[i] || checkWinner(data.board)) return;
+            data.board[i] = (myName === 'Vinod' ? 'X' : 'O');
+            data.turn = partner;
+            db.ref('games/ttt').set(data);
+        });
+    }
+    function checkWinner(board) {
+        for (let condition of winConditions) {
+            const [a, b, c] = condition;
+            if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+        }
+        return null;
+    }
+    db.ref('games/ttt').on('value', s => {
+        const data = s.val() || { board: Array(9).fill(""), turn: "Vinod" };
+        const cells = document.querySelectorAll('.ttt-cell');
+        data.board.forEach((val, i) => cells[i].innerText = val || "");
+        const winnerSymbol = checkWinner(data.board);
+        if(winnerSymbol) {
+            const winName = winnerSymbol === 'X' ? 'VINOD' : 'CINDY';
+            document.getElementById('winner-name').innerText = winName + " WINS!";
+            document.getElementById('win-overlay').style.display = 'flex';
+            if(winName === myName.toUpperCase()) db.ref('users/'+myName+'/wishes').transaction(w => (w || 0) + 1);
+        }
+        document.getElementById('ttt-status').innerText = data.turn === myName ? "Your Turn!" : partner + "'s Turn...";
+    });
+    function resetTTT() { db.ref('games/ttt').set({ board: Array(9).fill(""), turn: "Vinod" }); }
+
+    // --- CHARTS ---
+    function renderCompStats(filter) {
+        const ctx = document.getElementById('compChart').getContext('2d');
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Water', 'Happiness', 'Sleep'],
+                datasets: [
+                    { label: 'Vinod', data: [Math.random()*2000, 80, 7], backgroundColor: '#38bdf8', borderRadius: 10 },
+                    { label: 'Cindy', data: [Math.random()*2000, 95, 8], backgroundColor: '#f43f5e', borderRadius: 10 }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
 </script>
 </body>
 </html>
