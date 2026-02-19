@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CindVin - Connected</title>
+    <title>CindVin - Always Connected</title>
     
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3105/3105807.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,42 +25,30 @@
         .tab-item { border: none; background: none; color: #999; font-size: 0.6rem; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
         .tab-item.active { color: var(--romance-red); }
         
+        /* Water Progress */
         .circular-progress { width: 160px; height: 160px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: conic-gradient(var(--water-blue) 0deg, #ffebee 0deg); transition: 0.5s ease; margin: 15px auto; }
         .inner-circle { width: 130px; height: 130px; background: white; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; text-align: center; }
         
-        .mood-btn.active-mood { border: 3px solid var(--romance-red); background: white; transform: scale(1.2); box-shadow: 0 0 10px rgba(255,75,43,0.3); }
-        .kiss-active { background: #fff1f2 !important; border: 2px solid #fb7185 !important; }
-        @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        .heart-pulse { animation: heartbeat 0.8s infinite; color: var(--romance-red); }
-
-        .reply-box { background: rgba(0,0,0,0.05); border-left: 4px solid var(--romance-red); padding: 5px 10px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 5px; }
+        /* Games */
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .ttt-cell { aspect-ratio: 1; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; cursor: pointer; border: 1px solid #eee; }
+        
+        .mood-btn.selected { border: 3px solid var(--romance-red); transform: scale(1.1); }
+        .reply-box { background: #f1f5f9; border-left: 4px solid var(--romance-red); padding: 5px; border-radius: 4px; font-size: 0.7rem; margin-bottom: 5px; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-[9999]">💝 Syncing Our Love...</div>
+<div id="loading" class="fixed inset-0 bg-white flex items-center justify-center z-[9999]">💝 Syncing...</div>
 
 <div id="p-home" class="page active">
     <div class="card bg-slate-900 text-white border-none flex justify-between items-center">
-        <div><h2 class="font-bold">CindVin Hub</h2><p id="my-identity" class="text-[10px] opacity-60 uppercase"></p></div>
-        <div class="text-right"><span id="partner-status" class="text-xs font-bold text-slate-400">● Offline</span></div>
+        <div><h2 class="font-bold">CindVin Hub</h2><p id="user-tag" class="text-[9px] opacity-60 uppercase"></p></div>
+        <div class="text-right text-xs font-bold" id="partner-status">● Offline</div>
     </div>
 
-    <div class="card flex justify-between items-center">
-        <div class="text-left">
-            <p class="text-[10px] font-bold uppercase text-slate-400">Sleep Ritual</p>
-            <p id="partner-sleep-txt" class="text-xs font-bold text-slate-800">Cindy is Awake</p>
-        </div>
-        <button id="sleep-btn" onclick="toggleSleep()" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[10px] font-bold">Goodnight</button>
-    </div>
-
-    <div id="kiss-meter" class="card py-8 cursor-pointer select-none touch-none">
-        <i id="kiss-icon" class="fas fa-heart text-4xl text-slate-200"></i>
-        <p id="kiss-text" class="text-xs font-bold uppercase mt-3 text-slate-400">Hold for Shared Kiss</p>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3 mb-4">
+    <div class="grid grid-cols-2 gap-3 mb-4 mt-2">
         <button onclick="sendSignal('miss')" class="card p-5 active:scale-95 transition">
             <i class="fas fa-heart-broken text-sky-500 text-2xl mb-1"></i><br>
             <span class="text-[10px] font-bold uppercase text-slate-400">I Miss You</span>
@@ -73,85 +61,113 @@
         </button>
     </div>
 
-    <div class="card">
+    <div class="card text-center">
         <p class="text-[10px] uppercase font-bold text-slate-400 mb-4">Set My Mood</p>
-        <div id="mood-grid" class="flex justify-around text-3xl">
-            <button onclick="setMood('😊', this)" class="mood-btn p-2 rounded-full">😊</button>
-            <button onclick="setMood('😢', this)" class="mood-btn p-2 rounded-full">😢</button>
-            <button onclick="setMood('❤️', this)" class="mood-btn p-2 rounded-full">❤️</button>
-            <button onclick="setMood('😡', this)" class="mood-btn p-2 rounded-full">😡</button>
+        <div id="mood-row" class="flex justify-around text-3xl">
+            <button onclick="setMood('😊', this)" class="mood-btn p-1 rounded-full transition">😊</button>
+            <button onclick="setMood('😢', this)" class="mood-btn p-1 rounded-full transition">😢</button>
+            <button onclick="setMood('❤️', this)" class="mood-btn p-1 rounded-full transition">❤️</button>
+            <button onclick="setMood('😡', this)" class="mood-btn p-1 rounded-full transition">😡</button>
         </div>
-        <div class="mt-4 pt-4 border-t"><p id="partner-mood-display" class="text-xs italic text-slate-600">--</p></div>
+        <div class="mt-4 pt-4 border-t text-xs font-bold text-rose-500 italic" id="partner-mood-txt">Cindy feels: --</div>
+    </div>
+
+    <div class="card flex justify-between items-center">
+        <div class="text-left">
+            <p class="text-[10px] font-bold text-slate-400 uppercase">Sleep State</p>
+            <p id="partner-sleep-txt" class="text-xs font-bold">Partner is Awake ☀️</p>
+        </div>
+        <button id="sleep-btn" onclick="toggleSleep()" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[10px] font-bold">Goodnight</button>
     </div>
 </div>
 
 <div id="p-water" class="page">
-    <div id="love-overlay" class="fixed inset-0 bg-[#ff4b2b] bg-opacity-95 hidden flex-col items-center justify-center text-white z-[2000]">
-        <div style="font-size:100px; animation: heartbeat 0.8s infinite alternate;">❤️</div>
-        <h1 style="font-size: 3rem;">I Love You!</h1>
-        <button class="bg-white text-[#ff4b2b] px-8 py-3 rounded-full mt-5" onclick="document.getElementById('love-overlay').style.display='none'">I Love You Too ❤️</button>
+    <div id="love-overlay" class="fixed inset-0 bg-[#ff4b2b] hidden items-center justify-center text-white z-[5000] flex-col text-center">
+        <div style="font-size:80px;">❤️</div>
+        <h1 class="text-3xl font-bold">Goal Reached!</h1>
+        <button class="bg-white text-rose-500 px-6 py-2 rounded-full mt-4 font-bold" onclick="document.getElementById('love-overlay').style.display='none'">Yay!</button>
     </div>
     <div class="card">
         <div class="flex justify-between font-bold text-rose-600 mb-2">
-            <span>🎯 Target: <span id="display-goal">2000</span>ml</span>
+            <span>🎯 Goal: <span id="display-goal">2000</span>ml</span>
             <span style="color:#b8860b;">🪙 <span id="coin-count">0</span></span>
         </div>
-        <div class="circular-progress" id="progress">
+        <div class="circular-progress" id="progress-ring">
             <div class="inner-circle">
-                <span id="current-ml" style="font-size:1.8rem; font-weight:bold; color:#3498db;">0</span>
-                <span style="color:#777; font-size:0.8rem;">ml total</span>
+                <span id="current-ml" class="text-2xl font-bold text-sky-500">0</span>
+                <span class="text-[8px] text-gray-500 uppercase">ml total</span>
             </div>
         </div>
-        <input type="number" id="drink-amount" value="250" class="w-full border p-3 rounded-xl mb-2 text-center">
-        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-3 rounded-xl">Drink 💧</button>
-        <button onclick="resetToday()" class="w-full bg-rose-200 text-rose-700 text-xs mt-2 py-2 rounded-xl">Reset Today 🔄</button>
+        <input type="number" id="drink-amount" value="250" class="w-full border p-3 rounded-xl mb-2 text-center text-lg font-bold">
+        <button onclick="drinkWater()" class="w-full bg-sky-500 text-white font-bold py-4 rounded-xl shadow-lg">Drink 💧</button>
+        <button onclick="resetWater()" class="w-full bg-rose-100 text-rose-600 text-xs mt-3 py-2 rounded-xl uppercase font-bold">Reset Today 🔄</button>
     </div>
 </div>
 
 <div id="p-calories" class="page">
     <div class="card">
-        <h3 class="font-bold text-rose-600 mb-4 uppercase text-xs">Calorie Tracker</h3>
-        <div class="flex gap-2">
-            <input type="text" id="food-name" placeholder="What did you eat?" class="flex-1 border p-2 rounded-lg text-sm">
-            <input type="number" id="food-cal" placeholder="kcal" class="w-20 border p-2 rounded-lg text-sm">
-            <button onclick="addFood()" class="bg-rose-500 text-white px-4 rounded-lg"><i class="fas fa-plus"></i></button>
+        <h3 class="text-xs font-black text-rose-500 uppercase mb-4 tracking-widest">Nutrient Intake</h3>
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="food-name" placeholder="What did you eat?" class="flex-grow border p-2 rounded-xl text-sm">
+            <input type="number" id="food-cal" placeholder="kcal" class="w-20 border p-2 rounded-xl text-sm">
+            <button onclick="addFood()" class="bg-rose-500 text-white px-4 rounded-xl"><i class="fas fa-plus"></i></button>
         </div>
-        <div class="mt-4 grid grid-cols-2 gap-4 text-left">
-            <div><p class="text-[10px] font-bold border-b mb-2">VINOD'S LOG</p><div id="food-list-vinod" class="text-[10px] space-y-1"></div></div>
-            <div><p class="text-[10px] font-bold border-b mb-2">CINDY'S LOG</p><div id="food-list-cindy" class="text-[10px] space-y-1"></div></div>
-        </div>
-    </div>
-</div>
-
-<div id="p-chat" class="page">
-    <div class="card h-[70vh] flex flex-col p-2">
-        <div id="chat-box" class="flex-grow overflow-y-auto space-y-3 p-2"></div>
-        <div id="reply-preview" class="hidden reply-box mx-2"></div>
-        <div class="flex gap-2 p-2 border-t">
-            <input type="text" id="chat-input" placeholder="Message..." class="flex-1 p-2 text-sm outline-none">
-            <button onclick="sendMessage()" class="bg-rose-500 text-white px-4 rounded-xl"><i class="fas fa-paper-plane"></i></button>
+        <div class="grid grid-cols-2 gap-4 h-64 overflow-y-auto">
+            <div id="log-vinod" class="text-[10px] border-r pr-2"><b>VINOD LOG</b></div>
+            <div id="log-cindy" class="text-[10px]"><b>CINDY LOG</b></div>
         </div>
     </div>
 </div>
 
 <div id="p-stats" class="page">
-    <div class="card">
-        <h3 class="font-bold text-rose-600 mb-6 uppercase text-xs">Love Stats</h3>
-        <div id="stats-area" class="space-y-4"></div>
-        <hr class="my-6">
-        <canvas id="statChart" height="200"></canvas>
+    <div class="flex justify-around mb-4 bg-white p-2 rounded-2xl border">
+        <button class="px-4 py-1 text-[10px] font-bold rounded-lg bg-rose-500 text-white" onclick="renderStats('daily')">Daily</button>
+        <button class="px-4 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="renderStats('weekly')">Weekly</button>
+        <button class="px-4 py-1 text-[10px] font-bold rounded-lg bg-slate-100" onclick="renderStats('monthly')">Monthly</button>
+    </div>
+    <div id="stats-render" class="space-y-4"></div>
+</div>
+
+<div id="p-games" class="page">
+    <div class="card text-center">
+        <h3 class="font-bold mb-4 uppercase text-xs">Tic-Tac-Toe</h3>
+        <div class="ttt-grid" id="ttt-board">
+            <div class="ttt-cell" onclick="playTTT(0)"></div>
+            <div class="ttt-cell" onclick="playTTT(1)"></div>
+            <div class="ttt-cell" onclick="playTTT(2)"></div>
+            <div class="ttt-cell" onclick="playTTT(3)"></div>
+            <div class="ttt-cell" onclick="playTTT(4)"></div>
+            <div class="ttt-cell" onclick="playTTT(5)"></div>
+            <div class="ttt-cell" onclick="playTTT(6)"></div>
+            <div class="ttt-cell" onclick="playTTT(7)"></div>
+            <div class="ttt-cell" onclick="playTTT(8)"></div>
+        </div>
+        <p id="ttt-status" class="mt-4 text-xs font-bold text-rose-500">Your Turn!</p>
+        <button onclick="resetTTT()" class="mt-4 text-[10px] text-slate-400 font-bold uppercase underline">Reset Game</button>
+    </div>
+</div>
+
+<div id="p-chat" class="page">
+    <div class="card h-[75vh] flex flex-col p-1 bg-slate-50 shadow-inner">
+        <div id="chat-box" class="flex-grow overflow-y-auto space-y-4 p-4"></div>
+        <div id="reply-tag" class="hidden bg-slate-200 p-2 text-[10px] rounded-t-xl mx-2"></div>
+        <div class="flex gap-2 p-3 bg-white rounded-3xl border shadow-lg">
+            <input type="text" id="chat-input" placeholder="Message..." class="flex-grow p-2 text-sm outline-none">
+            <button onclick="sendChat()" class="bg-rose-500 text-white w-10 h-10 rounded-2xl"><i class="fas fa-paper-plane"></i></button>
+        </div>
     </div>
 </div>
 
 <div class="tab-bar">
-    <button class="tab-item active" onclick="showPage('home')">🏠<span>Home</span></button>
-    <button class="tab-item" onclick="showPage('water')">💧<span>Water</span></button>
-    <button class="tab-item" onclick="showPage('calories')">🥗<span>Calories</span></button>
-    <button class="tab-item" onclick="showPage('chat')">💬<span>Chat</span></button>
-    <button class="tab-item" onclick="showPage('stats')">📊<span>Stats</span></button>
+    <button class="tab-item active" onclick="showPage('home')">🏠<span>HUB</span></button>
+    <button class="tab-item" onclick="showPage('water')">💧<span>WATER</span></button>
+    <button class="tab-item" onclick="showPage('chat')">💬<span>CHAT</span></button>
+    <button class="tab-item" onclick="showPage('stats')">📊<span>STATS</span></button>
+    <button class="tab-item" onclick="showPage('games')">🎮<span>PLAY</span></button>
 </div>
 
 <script>
+    // --- CONFIG ---
     const firebaseConfig = {
         apiKey: "AIzaSyAkDjO1Zk_KsqnBhOYdZw8hX6ebcDv2TM8",
         authDomain: "watertracker-7c2d3.firebaseapp.com",
@@ -164,180 +180,122 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 1. ASKING NAME AT STARTING
-    let myName = localStorage.getItem('hs_user');
-    if(!myName) {
-        myName = prompt("Identify Yourself (Vinod/Cindy):");
-        if(myName) localStorage.setItem('hs_user', myName.charAt(0).toUpperCase() + myName.slice(1).toLowerCase());
-        else myName = "Vinod";
-    }
+    let myName = localStorage.getItem('hs_user') || prompt("Identity (Vinod/Cindy):");
+    localStorage.setItem('hs_user', myName);
     const partner = myName === 'Vinod' ? 'Cindy' : 'Vinod';
-    document.getElementById('my-identity').innerText = "Logged in: " + myName;
+    document.getElementById('user-tag').innerText = "Identity: " + myName;
 
-    let stats = { daily: {}, coins: 0, goal: 2000 };
-    let replyObj = null;
+    let statsData = { daily: {}, total_coins: 0, goal: 2000 };
+    let activeReply = null;
 
-    // 2. PARTNER ONLINE/OFFLINE STATUS
-    const statusRef = db.ref('status/' + myName);
-    db.ref('.info/connected').on('value', snap => {
-        if (snap.val()) statusRef.onDisconnect().set('offline').then(() => statusRef.set('online'));
-    });
+    // --- REALTIME PARTNER ---
+    db.ref('status/' + myName).onDisconnect().set('offline');
+    db.ref('status/' + myName).set('online');
     db.ref('status/' + partner).on('value', s => {
         const isOnline = s.val() === 'online';
         document.getElementById('partner-status').innerText = isOnline ? '● Online' : '● Offline';
         document.getElementById('partner-status').style.color = isOnline ? '#4ade80' : '#94a3b8';
     });
 
-    // 3. HIGHLIGHTING CURRENT MOOD
-    function setMood(emoji, el) {
-        db.ref('moods/' + myName).set(emoji);
-        document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('active-mood'));
-        el.classList.add('active-mood');
-        triggerNotif("Mood Update", myName + " is feeling " + emoji);
+    // --- HOME SIGNALS ---
+    function sendSignal(t) {
+        db.ref('signals/' + myName + '/' + t).push(Date.now());
+        if(navigator.vibrate) navigator.vibrate(200);
     }
-    db.ref('moods/' + partner).on('value', s => {
-        document.getElementById('partner-mood-display').innerText = partner + " feels: " + (s.val() || "--");
-    });
+    db.ref('signals/Vinod').on('value', s => { if(myName === 'Vinod') document.getElementById('my-miss-count').innerText = s.val()?.miss ? Object.keys(s.val().miss).length : 0; if(myName === 'Vinod') document.getElementById('my-love-count').innerText = s.val()?.love ? Object.keys(s.val().love).length : 0; });
+    db.ref('signals/Cindy').on('value', s => { if(myName === 'Cindy') document.getElementById('my-miss-count').innerText = s.val()?.miss ? Object.keys(s.val().miss).length : 0; if(myName === 'Cindy') document.getElementById('my-love-count').innerText = s.val()?.love ? Object.keys(s.val().love).length : 0; });
 
-    // 4. SLEEP STATUS SETTING
+    // --- MOOD & SLEEP ---
+    function setMood(m, el) {
+        db.ref('moods/' + myName).set(m);
+        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+    }
+    db.ref('moods/' + partner).on('value', s => document.getElementById('partner-mood-txt').innerText = partner + " feels: " + (s.val() || '--'));
+    
     function toggleSleep() {
-        const btn = document.getElementById('sleep-btn');
-        const isSleeping = btn.innerText === "Goodnight";
-        db.ref('sleep/' + myName).set(isSleeping);
-        btn.innerText = isSleeping ? "Wake Up" : "Goodnight";
-        triggerNotif("Sleep Update", myName + (isSleeping ? " went to sleep 😴" : " woke up ☀️"));
+        const isS = document.getElementById('sleep-btn').innerText === "Goodnight";
+        db.ref('sleep/' + myName).set(isS);
+        document.getElementById('sleep-btn').innerText = isS ? "Wake Up" : "Goodnight";
     }
-    db.ref('sleep/' + partner).on('value', s => {
-        document.getElementById('partner-sleep-txt').innerText = partner + " is " + (s.val() ? "Sleeping 😴" : "Awake ☀️");
-    });
+    db.ref('sleep/' + partner).on('value', s => document.getElementById('partner-sleep-txt').innerText = partner + (s.val() ? " is Sleeping 😴" : " is Awake ☀️"));
 
-    // 5. WATER TRACKER (FIXED TARGET UNDEFINED)
-    db.ref('users/' + myName).on('value', (snap) => {
-        if(snap.exists()) { stats = snap.val(); if(!stats.goal) stats.goal = 2000; }
-        document.getElementById('loading').style.display = 'none';
-        updateWaterUI();
-    });
+    // --- WATER (COIN LOGIC) ---
     function drinkWater() {
         const amt = parseInt(document.getElementById('drink-amount').value) || 0;
         const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        stats.daily[today] = (stats.daily[today] || 0) + amt;
-        if (stats.daily[today] >= stats.goal && (stats.daily[today]-amt) < stats.goal) {
-            stats.coins = (stats.coins || 0) + 10;
-            document.getElementById('love-overlay').style.display = 'flex';
-        }
-        db.ref('users/' + myName).set(stats);
+        db.ref('users/' + myName + '/daily/' + today).transaction(curr => {
+            const old = curr || 0;
+            if (old < 2000 && (old + amt) >= 2000) {
+                db.ref('users/' + myName + '/coins').transaction(c => (c || 0) + 10);
+                document.getElementById('love-overlay').style.display = 'flex';
+            }
+            return old + amt;
+        });
     }
-    function updateWaterUI() {
+    db.ref('users/' + myName).on('value', s => {
+        const d = s.val() || {};
         const today = new Date().toLocaleDateString().replace(/\//g, '-');
-        const curr = stats.daily?.[today] || 0;
-        const goal = stats.goal || 2000;
+        const curr = d.daily?.[today] || 0;
         document.getElementById('current-ml').innerText = curr;
-        document.getElementById('display-goal').innerText = goal;
-        document.getElementById('coin-count').innerText = stats.coins || 0;
-        const p = Math.min((curr / goal) * 360, 360);
-        document.getElementById('progress').style.background = `conic-gradient(var(--water-blue) ${p}deg, #ffebee 0deg)`;
-    }
-
-    // 6. NOTIFICATIONS & SIGNALS
-    function sendSignal(type) {
-        db.ref('signals/' + myName + '/' + type).push(Date.now());
-        triggerNotif("Love Alert", myName + " " + (type === 'miss' ? "misses you 💔" : "loves you ❤️"));
-        if (navigator.vibrate) navigator.vibrate(200);
-    }
-    function triggerNotif(title, body) {
-        db.ref('notifs/' + partner).set({title, body, ts: Date.now()});
-    }
-    db.ref('notifs/' + myName).on('value', s => {
-        const n = s.val(); if(!n) return;
-        if(Date.now() - n.ts < 5000) {
-            if (Notification.permission === "granted") new Notification(n.title, {body: n.body});
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }
+        document.getElementById('coin-count').innerText = d.coins || 0;
+        const p = Math.min((curr / 2000) * 360, 360);
+        document.getElementById('progress-ring').style.background = `conic-gradient(#00d2ff ${p}deg, #ffebee 0deg)`;
+        document.getElementById('loading').style.display = 'none';
     });
 
-    // KISS METER logic
-    const kissMeter = document.getElementById('kiss-meter');
-    kissMeter.addEventListener('pointerdown', () => db.ref('kiss/' + myName).set(true));
-    kissMeter.addEventListener('pointerup', () => db.ref('kiss/' + myName).set(false));
-    db.ref('kiss').on('value', s => {
-        const both = s.val()?.Vinod && s.val()?.Cindy;
-        if (both) {
-            kissMeter.classList.add('kiss-active');
-            document.getElementById('kiss-icon').classList.add('heart-pulse');
-            document.getElementById('kiss-text').innerText = "KISSING!";
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        } else {
-            kissMeter.classList.remove('kiss-active');
-            document.getElementById('kiss-icon').classList.remove('heart-pulse');
-            document.getElementById('kiss-text').innerText = s.val()?.[myName] ? "Waiting for partner..." : "Hold for Shared Kiss";
-        }
-    });
-
-    // CHAT & CALORIES (BASIC RECOVERY)
-    function sendMessage() {
-        const t = document.getElementById('chat-input').value; if(!t) return;
-        db.ref('chat').push({ f: myName, t: t, reply: replyObj });
-        document.getElementById('chat-input').value = ""; cancelReply();
-        triggerNotif("New Message", myName + ": " + t);
+    // --- CHAT (REPLY & STAMP) ---
+    function sendChat() {
+        const text = document.getElementById('chat-input').value;
+        if(!text) return;
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        db.ref('chat').push({ f: myName, t: text, time, reply: activeReply });
+        document.getElementById('chat-input').value = "";
+        activeReply = null; document.getElementById('reply-tag').classList.add('hidden');
     }
-    function setReply(text, sender) {
-        replyObj = { text, sender };
-        document.getElementById('reply-preview').innerText = "Replying to: " + text;
-        document.getElementById('reply-preview').classList.remove('hidden');
-    }
-    function cancelReply() { replyObj = null; document.getElementById('reply-preview').classList.add('hidden'); }
+    function setReply(t) { activeReply = t; document.getElementById('reply-tag').innerText = "Replying: " + t; document.getElementById('reply-tag').classList.remove('hidden'); }
+    
     db.ref('chat').limitToLast(15).on('value', s => {
         const box = document.getElementById('chat-box'); box.innerHTML = '';
         s.forEach(c => {
             const m = c.val(); const isMe = m.f === myName;
-            const rHtml = m.reply ? `<div class="reply-box">${m.reply.text}</div>` : '';
-            box.innerHTML += `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                <div onclick="setReply('${m.t}', '${m.f}')" class="p-3 rounded-2xl max-w-[80%] text-sm ${isMe ? 'bg-rose-500 text-white rounded-tr-none' : 'bg-white border shadow-sm rounded-tl-none'}">
-                    ${rHtml}${m.t}
-                </div></div>`;
+            box.innerHTML += `
+                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                    <div onclick="setReply('${m.t}')" class="p-3 rounded-2xl max-w-[85%] text-sm ${isMe ? 'bg-rose-500 text-white rounded-tr-none' : 'bg-white border rounded-tl-none'}">
+                        ${m.reply ? `<div class="reply-box">${m.reply}</div>` : ''} ${m.t}
+                    </div>
+                    <span class="text-[8px] text-slate-400 mt-1 uppercase font-bold">${m.time}</span>
+                </div>`;
         });
         box.scrollTop = box.scrollHeight;
     });
 
-    function addFood() {
-        const n = document.getElementById('food-name').value;
-        const c = document.getElementById('food-cal').value;
-        if(n && c) db.ref('calories/' + myName).push({n, c});
-        document.getElementById('food-name').value = ''; document.getElementById('food-cal').value = '';
-    }
-    db.ref('calories').on('value', s => {
-        ['Vinod', 'Cindy'].forEach(u => {
-            const l = document.getElementById('food-list-' + u.toLowerCase()); l.innerHTML = '';
-            Object.values(s.val()?.[u] || {}).forEach(f => {
-                l.innerHTML += `<div class="flex justify-between"><span>${f.n}</span><span>${f.c}kcal</span></div>`;
-            });
+    // --- TIC TAC TOE ---
+    function playTTT(i) {
+        db.ref('games/ttt').once('value', s => {
+            const data = s.val() || { board: Array(9).fill(""), turn: "Vinod" };
+            if(data.turn !== myName || data.board[i]) return;
+            data.board[i] = (myName === 'Vinod' ? 'X' : 'O');
+            data.turn = partner;
+            db.ref('games/ttt').set(data);
         });
+    }
+    db.ref('games/ttt').on('value', s => {
+        const data = s.val() || { board: Array(9).fill(""), turn: "Vinod" };
+        const cells = document.querySelectorAll('.ttt-cell');
+        data.board.forEach((v, i) => cells[i].innerText = v || "");
+        document.getElementById('ttt-status').innerText = data.turn === myName ? "Your Turn!" : partner + "'s Turn...";
     });
+    function resetTTT() { db.ref('games/ttt').set({ board: Array(9).fill(""), turn: "Vinod" }); }
 
+    // --- NAV & STATS ---
     function showPage(p) {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
         document.getElementById('p-' + p).classList.add('active');
         const activeTab = Array.from(document.querySelectorAll('.tab-item')).find(t => t.getAttribute('onclick').includes(p));
         if(activeTab) activeTab.classList.add('active');
-        if(p === 'stats') updateStatsUI();
     }
-    function updateStatsUI() {
-        db.ref('signals').once('value', s => {
-            const data = s.val() || {};
-            let h = '';
-            ['miss', 'love'].forEach(t => {
-                const v = Object.keys(data.Vinod?.[t] || {}).length;
-                const c = Object.keys(data.Cindy?.[t] || {}).length;
-                h += `<div class="p-3 bg-white rounded-xl shadow-sm border mb-2">
-                    <p class="text-[10px] font-bold uppercase mb-2">Total ${t}</p>
-                    <div class="flex justify-between"><span>Vinod: ${v}</span><span>Cindy: ${c}</span></div>
-                </div>`;
-            });
-            document.getElementById('stats-area').innerHTML = h;
-        });
-    }
-    Notification.requestPermission();
 </script>
 </body>
 </html>
